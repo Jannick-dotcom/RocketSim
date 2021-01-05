@@ -3,6 +3,8 @@
 
 #include <math.h>
 #include <stdint.h>
+#include "mainGame.h"
+#include "autoLand.h"
 
 float Jmin(float *arr1, float *arr2, uint64_t size, uint64_t *index)
 {
@@ -16,6 +18,15 @@ float Jmin(float *arr1, float *arr2, uint64_t size, uint64_t *index)
         }
     }
     return currMin;
+}
+
+void executeFlightPath()
+{
+    while (alt > 0 && spdy <= 0)
+    {
+        doStep();
+        autoLand();
+    }
 }
 
 #endif

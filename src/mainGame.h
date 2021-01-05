@@ -25,10 +25,11 @@ float tSurface;
 float tSuicide;
 float dSuicide;
 uint8_t suicideBurnActive;
+uint8_t entryBurnActive;
 
 void init()
 {
-    spdy = 0.0f;                     //[m/s]
+    spdy = -1.0f;                     //[m/s]
     alt = 130000.0f;                 //[m]
     earthMass = 5.972 * pow(10, 24); //[kg]
     earthRadius = 6371000.0;
@@ -36,13 +37,14 @@ void init()
     g = -gravConst * (earthMass / pow(alt + earthRadius, 2)); //[m/s²]
     accEngines = 0.0f;                                        //[m/s²]
     vehMass = 100000.0f;                                      //[kg]
-    vehThrust = vehMass * fabs(g) * 5.0f;                     //[N]
+    vehThrust = vehMass * fabs(g) * 6.0f;                     //[N]
 
     fuelConsumption = 5000.0f; //[kg/s]
     throttle = 0.0f;           //[%]
 
     stepsize = 0.1f; //[s]
     suicideBurnActive = 0;
+    entryBurnActive = 0;
     aSuicideTarget = vehThrust / vehMass;
 }
 
