@@ -3,8 +3,15 @@
 
 #include <math.h>
 #include <stdint.h>
-#include "mainGame.h"
-#include "autoLand.h"
+
+using namespace std;
+
+float findMittelWertG(float altitude)
+{
+    float oben = (gravConst * earthMass) / (altitude + earthRadius);
+    float unten = (gravConst * earthMass) / (earthRadius);
+    return (oben - unten) / altitude;
+}
 
 float Jmin(float *arr1, float *arr2, uint64_t size, uint64_t *index)
 {
@@ -18,15 +25,6 @@ float Jmin(float *arr1, float *arr2, uint64_t size, uint64_t *index)
         }
     }
     return currMin;
-}
-
-void executeFlightPath()
-{
-    while (alt > 0 && spdy <= 0)
-    {
-        doStep();
-        autoLand();
-    }
 }
 
 #endif

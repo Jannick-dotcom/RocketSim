@@ -6,7 +6,7 @@
             "command": "/usr/bin/g++",
             "args": [
                 "-g",
-                "${file}",
+                "${fileDirname}/../src/main.cpp",
                 "-o",
                 "${fileDirname}/../build/a.out"
             ],

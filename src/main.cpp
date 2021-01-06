@@ -7,11 +7,36 @@ using namespace std;
 
 #include "mainGame.h"
 #include "helpers.h"
+#include "autoLand.h"
 
+void executeFlightPath(uint8_t print)
+{
+    throttle = 1;
+    if (print)
+    {
+        cout << "Launch:" << endl;
+        printVals();
+    }
+    while (spdy < 1500)
+    {
+        doStep();
+    }
+    throttle = 0;
+    if (print)
+    {
+        cout << "MECO:" << endl;
+        printVals();
+    }
+    while (alt > 0)
+    {
+        doStep();
+        autoLand(print);
+    }
+}
 
 int main()
 {
-    const uint64_t trys = 1000;
+    const uint64_t trys = 1000000;
     uint64_t indexMin;
 
     float speeds[trys];
@@ -20,28 +45,21 @@ int main()
     for (auto i = 0; i < trys; i++)
     {
         init();
-        aSuicideTarget = (aSuicideTarget / 2.0f) + float(i - (trys / 2.0f)) / float(trys / 10.0f);
-        executeFlightPath();
+        aSuicideTargetMod = float(i - (trys / 2.0f)) / float(trys / 10.0f);
+        executeFlightPath(0);
         speeds[i] = spdy;
         alts[i] = alt;
-        accs[i] = accEngines * throttle;
+        accs[i] = accVehicle * throttle;
     }
     Jmin(speeds, alts, trys, &indexMin);
 
     //replay
+    cout << "Replay of best Flight: [" << indexMin << "]" << endl;
     init();
-    aSuicideTarget = (aSuicideTarget / 2.0) + (indexMin - (trys / 2.0f)) / (trys / 10.0f);
-    executeFlightPath();
+    aSuicideTarget = (indexMin - (trys / 2.0f)) / (trys / 10.0f);
+    executeFlightPath(1);
 
-    cout << "Speed: " << spdy << " m/s" << endl;
-    cout << "Altitude: " << alt << " m" << endl;
-    cout << "Acceleration: " << (accEngines * throttle) << " m/s²" << endl;
-    cout << "Acceleration Target: " << aSuicideTarget << " m/s²" << endl;
-    cout << "tSuicide: " << tSuicide << " s" << endl;
-    cout << "dSuicide: " << dSuicide << " m" << endl;
-    cout << "Throttle: " << throttle * 100.0f << " %" << endl;
-    cout << endl;
-
-    cout << "[ " << indexMin << " ]" << endl;
+    cout << "End Result:" << endl;
+    printVals();
     return 0;
 }
