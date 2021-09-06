@@ -7,6 +7,7 @@
             "args": [
                 "-g",
                 "${fileDirname}/../src/main.cpp",
+                "-pthread",
                 "-o",
                 "${fileDirname}/../build/a.out"
             ],
