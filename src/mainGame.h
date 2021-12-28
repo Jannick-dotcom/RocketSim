@@ -24,6 +24,8 @@ struct vals
     double vehThrust;  //[N]
     double engThrust;  //[N]
     int ctEngines;
+
+    const double initialMass = 267000;
     double vehMass;                 //[kg]
     double dryMass;                 //[kg]
 
@@ -85,7 +87,7 @@ void printVals(struct vals *temp)
     std::cout << "total Acceleration: " << (temp->accVehicle * temp->throttle) + temp->accDragY + temp->g << " m/s²\n";
     std::cout << "g: " << temp->g << "\t Drag: " << temp->accDragY << "\t Engines: " << (temp->accVehicle * temp->throttle) << "\n";
     std::cout << "Suicide Acceleration Error: " << (temp->accVehicle * temp->throttle) + temp->accDragY + temp->g - temp->aSuicideTarget << "m/s²\n";
-    std::cout << "Fuel: " << (temp->vehMass - temp->dryMass) / 2670.0 << " %\n";
+    std::cout << "Fuel: " << ((temp->vehMass - temp->dryMass) / temp->initialMass) * 100.0 << " %\n";
     std::cout << "Throttle: " << temp->throttle * 100.0f << " %\n";
     std::cout << "Active Engines: " << temp->ctEngines << "\n";
     std::cout << "\n";
@@ -101,7 +103,7 @@ void init(struct vals *temp)
     temp->earthRadius = 6371000.0;
     temp->g = -temp->gravConst * (temp->earthMass / pow(temp->alt + temp->earthRadius, 2)); //[m/s²]
     temp->accVehicle = 0.0f;                                                                //[m/s²]
-    temp->vehMass = 300000.0f;                                                              //[kg]
+    temp->vehMass = temp->initialMass;                                                              //[kg]
     temp->dryMass = 20000.0f;
     temp->engThrust = 1000000.0f;
     temp->ctEngines = 9;
@@ -151,7 +153,10 @@ void doStep(struct vals *temp)
     temp->spdx = temp->spdx + (temp->g + (temp->accVehicle * temp->throttle) + temp->accDragX) * temp->stepsize;
 
     temp->alt = temp->alt + (temp->spdy * temp->stepsize);
-    temp->fuelConsumption = 1451.0f / temp->ctEngines;
+    if(temp->ctEngines > 0)
+        temp->fuelConsumption = 1451.0f / temp->ctEngines;
+    else
+        temp->fuelConsumption = 0;
     temp->vehMass = temp->vehMass - (temp->fuelConsumption * temp->throttle * temp->ctEngines * temp->stepsize);
     temp->g = -temp->gravConst * (temp->earthMass / pow(temp->alt + temp->earthRadius, 2));
 }
