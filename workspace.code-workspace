@@ -53,7 +53,15 @@
 			"thread": "cpp",
 			"chrono": "cpp",
 			"ctime": "cpp",
-			"ratio": "cpp"
+			"ratio": "cpp",
+			"csetjmp": "cpp",
+			"csignal": "cpp",
+			"cstring": "cpp",
+			"strstream": "cpp",
+			"list": "cpp",
+			"map": "cpp",
+			"iomanip": "cpp",
+			"cinttypes": "cpp"
 		}
 	}
 }

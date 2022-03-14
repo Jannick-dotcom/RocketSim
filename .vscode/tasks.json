@@ -5,11 +5,12 @@
             "label": "C/C++: g++ build active file",
             "command": "/usr/bin/g++",
             "args": [
+                "-Wall",
                 "-g",
-                "${fileDirname}/../src/main.cpp",
+                "/media/jannick/DATA/Daten/SoftwareProjekte/C++/Linux/RocketSim/src/main.cpp",
                 "-pthread",
                 "-o",
-                "${fileDirname}/../build/a.out"
+                "/media/jannick/DATA/Daten/SoftwareProjekte/C++/Linux/RocketSim/build/a.out"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

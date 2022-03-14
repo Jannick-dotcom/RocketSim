@@ -18,7 +18,7 @@ struct vals
     double g;           //[m/s²]
     double earthMass;   //[kg]
     double earthRadius; //[m]
-    const double gravConst = 6.674 * pow(10, -11);
+    const double gravConst = 6.6743 * pow(10, -11);
 
     double accVehicle; //[m/s²]
     double vehThrust;  //[N]
@@ -29,7 +29,7 @@ struct vals
     double vehMass;                 //[kg]
     double dryMass;                 //[kg]
 
-    double radius;                  //[m]
+    double radius;                  //[m] of rocket
     double area;                    //[m²]
     const double coefficient = 100; //????????
     double density;
@@ -38,7 +38,8 @@ struct vals
     double accDragX;
     double accDragY;
 
-    double aSuicideTarget = 0;
+    int suicideBurnActive;
+    int entryBurnActive;
     double fuelConsumption; //[kg/s]
     double throttle;        //[%]
 
@@ -81,12 +82,12 @@ void printGround(struct vals *temp)
 
 void printVals(struct vals *temp)
 {
-    std::cout << "Speed: " << temp->spdy << " m/s\n";
+    std::cout << "Speed Y: " << temp->spdy << " m/s\n";
+    std::cout << "Speed X: " << temp->spdx << " m/s\n";
     std::cout << "Altitude: " << temp->alt << " m\n";
     std::cout << "Angle: " << temp->angle << " °\n";
     std::cout << "total Acceleration: " << (temp->accVehicle * temp->throttle) + temp->accDragY + temp->g << " m/s²\n";
     std::cout << "g: " << temp->g << "\t Drag: " << temp->accDragY << "\t Engines: " << (temp->accVehicle * temp->throttle) << "\n";
-    std::cout << "Suicide Acceleration Error: " << (temp->accVehicle * temp->throttle) + temp->accDragY + temp->g - temp->aSuicideTarget << "m/s²\n";
     std::cout << "Fuel: " << ((temp->vehMass - temp->dryMass) / temp->initialMass) * 100.0 << " %\n";
     std::cout << "Throttle: " << temp->throttle * 100.0f << " %\n";
     std::cout << "Active Engines: " << temp->ctEngines << "\n";
@@ -98,6 +99,7 @@ void printVals(struct vals *temp)
 void init(struct vals *temp)
 {
     temp->spdy = 0.0f;                     //[m/s]
+    temp->spdx = 0.0f;
     temp->alt = 0.0f;                      //[m]
     temp->earthMass = 5.972 * pow(10, 24); //[kg]
     temp->earthRadius = 6371000.0;
@@ -121,6 +123,8 @@ void init(struct vals *temp)
     temp->SeaLvlpressure = 1013.0;
     temp->accDragX = 0;
     temp->accDragY = 0;
+    temp->suicideBurnActive = 0;
+    temp->entryBurnActive = 0;
 }
 
 void doStep(struct vals *temp)
@@ -139,6 +143,7 @@ void doStep(struct vals *temp)
     temp->pressure = temp->SeaLvlpressure * pow(1.0 - ((0.0065 * temp->alt) / (15.0+0.0065*temp->alt+273.15)),5.257); 
 
     temp->density = temp->pressure / (287.058 * 293.15); //Gaskonstante und 20°C
+    if(temp->alt > 120000) temp->density = 0;
 
     temp->accDragY = (temp->coefficient * temp->density * pow(temp->spdy, 2) * temp->area * 0.5) / temp->vehMass;
     temp->accDragX = (temp->coefficient * temp->density * pow(temp->spdx, 2) * temp->area * 0.5) / temp->vehMass;
@@ -149,8 +154,12 @@ void doStep(struct vals *temp)
 
     temp->vehThrust = temp->engThrust * temp->ctEngines;
     temp->accVehicle = (temp->vehThrust / temp->vehMass);
-    temp->spdy = temp->spdy + (temp->g + (temp->accVehicle * temp->throttle) + temp->accDragY) * temp->stepsize;
-    temp->spdx = temp->spdx + (temp->g + (temp->accVehicle * temp->throttle) + temp->accDragX) * temp->stepsize;
+    double centrifugeForce = temp->vehMass * pow(temp->spdx, 2) / (temp->earthRadius + temp->alt);
+    double forceToEarth = temp->gravConst * ((temp->earthMass*temp->vehMass) / ((temp->earthRadius+temp->alt) * (temp->earthRadius+temp->alt)));
+    double accelerationToEarth = (centrifugeForce-forceToEarth) / temp->vehMass;
+    temp->g = accelerationToEarth;
+    temp->spdy = temp->spdy + ((temp->g) + (temp->accVehicle * temp->throttle) * cos((temp->angle * 2 * M_PI) / 360.0) + temp->accDragY) * temp->stepsize;
+    temp->spdx = temp->spdx + ((temp->accVehicle * temp->throttle) * sin((temp->angle * 2 * M_PI) / 360.0) + temp->accDragX) * temp->stepsize;
 
     temp->alt = temp->alt + (temp->spdy * temp->stepsize);
     if(temp->ctEngines > 0)
@@ -158,7 +167,7 @@ void doStep(struct vals *temp)
     else
         temp->fuelConsumption = 0;
     temp->vehMass = temp->vehMass - (temp->fuelConsumption * temp->throttle * temp->ctEngines * temp->stepsize);
-    temp->g = -temp->gravConst * (temp->earthMass / pow(temp->alt + temp->earthRadius, 2));
+    // temp->g = -temp->gravConst * (temp->earthMass / pow(temp->alt + temp->earthRadius, 2));
 }
 
 #endif

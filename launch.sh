@@ -1,3 +1,3 @@
 #!/bin/bash
-g++ src/main.cpp -o build/a.out
+g++ -Wall src/main.cpp -pthread -Isrc -o build/a.out
 ./build/a.out

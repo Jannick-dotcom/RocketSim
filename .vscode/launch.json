@@ -8,7 +8,7 @@
             "name": "g++ - Build and debug active file",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${fileDirname}/../build/a.out",
+            "program": "/media/jannick/DATA/Daten/SoftwareProjekte/C++/Linux/RocketSim/build/a.out",
             "args": [],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}",
