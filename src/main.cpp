@@ -13,8 +13,9 @@
 #include <sys/ipc.h>
 #include <sys/sem.h>
 #include <semaphore.h>
+#include <iostream>
 
-// #define asFastAsPossible
+#define asFastAsPossible
 
 static int semid1, semid2;
 sem_t sem1;
@@ -22,8 +23,17 @@ sem_t sem2;
 
 volatile bool notdone = true;
 struct vals *tempOut;
-struct vals currentValues;
+
 using namespace std;
+ofstream f("test.txt");
+
+volatile uint32_t id = 0;
+void writeToFile(struct vals *values, double val)
+{
+    sem_wait(&sem1);
+    f << val << ", " << values->alt << ", " << values->spdy << endl;
+    sem_post(&sem1);
+}
 
 void timing()
 {
@@ -76,16 +86,24 @@ void autoland(struct vals *values)
         values->suicideBurnActive = 0;
         values->throttle = 0.0;
     }
-    else if ((dSuicide >= values->alt && values->alt < 10000 && values->alt > 0) || values->suicideBurnActive)
+    else if ((dSuicide >= values->alt && values->alt < 10000 && values->alt > 0 && values->spdy < 0))
     {
-        values->throttle = dSuicide / values->alt;
+        // values->throttle = dSuicide / values->alt;
+        values->throttle = 1;
         values->suicideBurnActive = 1;
-        values->stepsize = 0.0001;
+        // values->stepsize = 0.0001;
+    }
+    else if(values->suicideBurnActive)
+    {
+        // values->throttle = 0.0;
+        // values->stepsize = 0.001;
+        // values->suicideBurnActive = 0;
     }
 }
 
 void executeFlightPath(double valToVariate)
 {
+    struct vals currentValues;
     struct vals *temp = &currentValues;
     tempOut = temp;
     int pitchManeuverFin = 0;
@@ -96,7 +114,7 @@ void executeFlightPath(double valToVariate)
     while (temp->spdx < 6000)
     {
 #ifndef asFastAsPossible
-        // sem_wait(&sem2);
+        sem_wait(&sem2);
 #endif
         if(temp->spdy > 10.0 && temp->spdy < 300.0 && pitchManeuverFin == 0)
         {
@@ -117,7 +135,7 @@ void executeFlightPath(double valToVariate)
     while (temp->spdy >= 0)
     {
 #ifndef asFastAsPossible
-        // sem_wait(&sem2);
+        sem_wait(&sem2);
 #endif
         // double anglePrograde = rad2deg(atan(temp->spdx / temp->spdy));
         if(temp->spdy < 25)
@@ -144,20 +162,26 @@ void executeFlightPath(double valToVariate)
     while (temp->alt > 100000 && temp->alt < INFINITY)
     {
 #ifndef asFastAsPossible
-        // sem_wait(&sem2);
+        sem_wait(&sem2);
 #endif
         temp->angle = 0;
         doStep(temp);
     }
     temp->ctEngines = 1;
-    while (temp->alt > 0)
+
+    while (temp->alt > 0 && temp->spdy < 0)
     {
-        autoland(temp);
+        // autoland(temp);
+        if(temp->alt < valToVariate)
+        {
+            temp->throttle = 1.0;
+        }
 #ifndef asFastAsPossible
         sem_wait(&sem2);
 #endif
         doStep(temp);
     }
+    writeToFile(temp, valToVariate);
     // system("clear");
     // printVals(temp);
     notdone = false;
@@ -190,18 +214,22 @@ void startGUIThreads()
 
 void startNoGUIThreads()
 {
-    const uint16_t threads = 12; //10
+    const uint16_t threads = std::thread::hardware_concurrency(); //10
     std::thread tmp[threads];
-    for (uint8_t thr = 0; thr < threads; thr++)
+    sem_post(&sem1);
+    for (uint32_t i = 0; i < 10000; i++)
     {
-        tmp[thr] = std::thread(executeFlightPath, 0);
-        pthread_setname_np(tmp[thr].native_handle(), "calc");
-        // tmp[thr].detach();
-    }
-    for (uint8_t thr = 0; thr < threads; thr++)
-    {
-        // pthread_setname_np(tmp[thr].native_handle(), "calc");
-        tmp[thr].join();
+        for (uint8_t thr = 0; thr < threads; thr++)
+        {
+            tmp[thr] = std::thread(executeFlightPath, double(i) + (double(thr) / double(threads)));
+            pthread_setname_np(tmp[thr].native_handle(), "calc");
+            // tmp[thr].detach();
+        }
+        for (uint8_t thr = 0; thr < threads; thr++)
+        {
+            // pthread_setname_np(tmp[thr].native_handle(), "calc");
+            tmp[thr].join();
+        }
     }
 }
 
@@ -209,12 +237,10 @@ int main()
 {
     sem_init(&sem1, 0, 0);
     sem_init(&sem2, 0, 0);
-    // for(uint8_t i = 0; i < 10; i++)
-    // {
-    //     startNoGUIThreads();
-    // }
-    startGUIThreads();
+    startNoGUIThreads();
+    // startGUIThreads();
     semctl(semid1, 0, IPC_RMID, 0);
     semctl(semid2, 0, IPC_RMID, 0);
+    f.close();
     return 0;
 }
