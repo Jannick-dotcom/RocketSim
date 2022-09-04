@@ -25,13 +25,13 @@ volatile bool notdone = true;
 struct vals *tempOut;
 
 using namespace std;
-ofstream f("test.txt");
+ofstream f("test.txt", std::ios_base::app);
 
 volatile uint32_t id = 0;
 void writeToFile(struct vals *values, double val)
 {
     sem_wait(&sem1);
-    f << val << ", " << values->alt << ", " << values->spdy << endl;
+    f << val << ", " << values->alt << ", " << values->spdy << ", " << values->angle << endl;
     sem_post(&sem1);
 }
 
@@ -81,23 +81,29 @@ void autoland(struct vals *values)
     double dSuicide = (tSuicide * tSuicide * netAcceleration) / 2; // S = 1/2 * a * t²
     double angleRetrograde = rad2deg(atan(values->spdx / values->spdy));
     values->angle = angleRetrograde;
+    if(values->entryBurnActive == 0 && values->alt < 6e4 && values->spdy < -1000)
+    {
+        values->throttle = 1.0;
+        values->entryBurnActive = 1;
+    }
+    else if(values->entryBurnActive == 1 && values->alt < 6e4 && values->spdy > -700)
+    {
+        values->throttle = 0.0;
+        values->entryBurnActive = 2;
+        values->ctEngines = 1;
+    }
+
     if (values->alt <= 0)
     {
         values->suicideBurnActive = 0;
         values->throttle = 0.0;
     }
-    else if ((dSuicide >= values->alt && values->alt < 10000 && values->alt > 0 && values->spdy < 0))
+    else if ((dSuicide >= values->alt && values->alt < 10000 && values->alt > 0 && values->spdy < 0) || values->suicideBurnActive)
     {
-        // values->throttle = dSuicide / values->alt;
-        values->throttle = 1;
+        values->throttle = dSuicide / values->alt;
+        // values->throttle = 1;
         values->suicideBurnActive = 1;
-        // values->stepsize = 0.0001;
-    }
-    else if(values->suicideBurnActive)
-    {
-        // values->throttle = 0.0;
-        // values->stepsize = 0.001;
-        // values->suicideBurnActive = 0;
+        // values->stepsize = 0.00001;
     }
 }
 
@@ -111,7 +117,7 @@ void executeFlightPath(double valToVariate)
     init(temp);
     temp->throttle = 1.0;
     temp->ctEngines = 9;
-    while (temp->spdx < 6000)
+    while (temp->spdx < valToVariate)
     {
 #ifndef asFastAsPossible
         sem_wait(&sem2);
@@ -131,7 +137,7 @@ void executeFlightPath(double valToVariate)
         doStep(temp);
     }
     temp->throttle = 0.0;
-    temp->ctEngines = 1;
+    temp->ctEngines = 3;
     while (temp->spdy >= 0)
     {
 #ifndef asFastAsPossible
@@ -167,15 +173,15 @@ void executeFlightPath(double valToVariate)
         temp->angle = 0;
         doStep(temp);
     }
-    temp->ctEngines = 1;
+    
 
     while (temp->alt > 0 && temp->spdy < 0)
     {
-        // autoland(temp);
-        if(temp->alt < valToVariate)
-        {
-            temp->throttle = 1.0;
-        }
+        autoland(temp);
+        // if(temp->alt < 899.33)
+        // {
+        //     temp->throttle = 1.0;
+        // }
 #ifndef asFastAsPossible
         sem_wait(&sem2);
 #endif
@@ -217,7 +223,7 @@ void startNoGUIThreads()
     const uint16_t threads = std::thread::hardware_concurrency(); //10
     std::thread tmp[threads];
     sem_post(&sem1);
-    for (uint32_t i = 0; i < 10000; i++)
+    for (uint32_t i = 0; i < 2000; i++)
     {
         for (uint8_t thr = 0; thr < threads; thr++)
         {
