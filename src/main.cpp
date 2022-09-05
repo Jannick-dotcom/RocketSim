@@ -15,7 +15,7 @@
 #include <semaphore.h>
 #include <iostream>
 
-#define asFastAsPossible
+// #define asFastAsPossible
 
 static int semid1, semid2;
 sem_t sem1;
@@ -65,11 +65,11 @@ void output()
 {
     while (notdone)
     {
+        system("clear");
+        if(tempOut != nullptr) printVals(tempOut);
 #ifndef asFastAsPossible
         sem_wait(&sem1);
 #endif
-        system("clear");
-        if(tempOut != nullptr) printVals(tempOut);
     }
 }
 
@@ -90,7 +90,6 @@ void autoland(struct vals *values)
     {
         values->throttle = 0.0;
         values->entryBurnActive = 2;
-        values->ctEngines = 1;
     }
 
     if (values->alt <= 0)
@@ -101,9 +100,17 @@ void autoland(struct vals *values)
     else if ((dSuicide >= values->alt && values->alt < 10000 && values->alt > 0 && values->spdy < 0) || values->suicideBurnActive)
     {
         values->throttle = dSuicide / values->alt;
+        if(values->throttle > 1 && values->ctEngines < 9)
+        {
+            values->ctEngines++;
+        }
+        else if(values->throttle <= 0.2 && values->ctEngines > 1)
+        {
+            values->ctEngines--;
+        }
         // values->throttle = 1;
         values->suicideBurnActive = 1;
-        // values->stepsize = 0.00001;
+        values->stepsize = 0.0001;
     }
 }
 
@@ -187,7 +194,7 @@ void executeFlightPath(double valToVariate)
 #endif
         doStep(temp);
     }
-    writeToFile(temp, valToVariate);
+    // writeToFile(temp, valToVariate);
     // system("clear");
     // printVals(temp);
     notdone = false;
@@ -201,7 +208,7 @@ void startGUIThreads()
     const uint16_t threads = 1;
 #endif
     std::thread tmp[threads];
-    tmp[0] = std::thread(executeFlightPath, 0);
+    tmp[0] = std::thread(executeFlightPath, 6000);
 #ifndef asFastAsPossible
     tmp[1] = std::thread(output);
     tmp[2] = std::thread(timing);
@@ -223,7 +230,7 @@ void startNoGUIThreads()
     const uint16_t threads = std::thread::hardware_concurrency(); //10
     std::thread tmp[threads];
     sem_post(&sem1);
-    for (uint32_t i = 0; i < 2000; i++)
+    for (uint32_t i = 250; i < 1250; i++)
     {
         for (uint8_t thr = 0; thr < threads; thr++)
         {
@@ -243,8 +250,8 @@ int main()
 {
     sem_init(&sem1, 0, 0);
     sem_init(&sem2, 0, 0);
-    startNoGUIThreads();
-    // startGUIThreads();
+    // startNoGUIThreads();
+    startGUIThreads();
     semctl(semid1, 0, IPC_RMID, 0);
     semctl(semid2, 0, IPC_RMID, 0);
     f.close();
