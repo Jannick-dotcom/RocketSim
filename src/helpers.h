@@ -4,7 +4,7 @@
 #include <math.h>
 #include <stdint.h>
 
-using namespace std;
+// using namespace std;
 
 double findGAtAlt(struct vals *temp, double alt)
 {

@@ -4,8 +4,6 @@
 #include <math.h>
 #include <thread>
 #include <pthread.h>
-#include "mainGame.h"
-#include "helpers.h"
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -15,23 +13,93 @@
 #include <semaphore.h>
 #include <iostream>
 
-// #define asFastAsPossible
+#include "mainGame.h"
+#include "helpers.h"
 
-static int semid1, semid2;
-sem_t sem1;
-sem_t sem2;
+static int semid1, semid2; // semaphore ids
+sem_t sem1; // semaphore for mainGame
+sem_t sem2; // semaphore for mainGame
 
-volatile bool notdone = true;
-struct vals *tempOut;
+volatile bool notdone = true; 
+struct vals *tempOut; // tempOut is a pointer to a struct of type vals
 
-using namespace std;
-ofstream f("test.txt", std::ios_base::app);
+using namespace std; 
+ofstream f("test.txt", std::ios_base::app); // open file for writing
 
-volatile uint32_t id = 0;
+double calculate_d_suicide(struct vals *values, uint8_t ct_engines)
+{
+    if(ct_engines == 0)
+    {
+        ct_engines = values->ctEngines;
+    }
+    double temp_accVehicle = (values->engThrust * ct_engines) / values->vehMass;
+    double temp_netAcceleration = temp_accVehicle + values->g; //Max Possible Acceleration
+    double temp_speedVector = sqrt(pow(values->spdy, 2) + pow(values->spdx, 2));
+    double temp_tSuicide = temp_speedVector / temp_netAcceleration;
+    return (temp_tSuicide * temp_tSuicide * temp_netAcceleration) / 2; // S = 1/2 * a * t²
+}
+
+void autoland(struct vals *values)
+{
+    double dSuicide = 0.0;
+    if(values->suicideBurnActive == 0)
+    {
+        for (uint8_t i = 9; i > 0; i--) //check all engine configurations
+        {
+            dSuicide = calculate_d_suicide(values, i);
+
+            if(dSuicide > 900 && dSuicide < 2000)
+            {
+                values->ctEngines = i;
+                break;
+            }
+        }
+    }
+    else
+    {
+        dSuicide = calculate_d_suicide(values, values->ctEngines);
+    }
+    double angleRetrograde = rad2deg(atan(values->spdx / values->spdy));
+    values->angle = angleRetrograde;
+    if(values->entryBurnActive == 0 && values->alt < 6e4 && values->spdy < -1000)
+    {
+        values->throttle = 1.0;
+        values->entryBurnActive = 1;
+    }
+    else if(values->entryBurnActive == 1 && values->alt < 6e4 && values->spdy > -900)
+    {
+        values->throttle = 0.0;
+        values->entryBurnActive = 2;
+    }
+
+    if (values->alt <= 0)
+    {
+        values->suicideBurnActive = 0;
+        values->throttle = 0.0;
+    }
+    else if ((dSuicide >= values->alt && values->alt < 10000 && values->alt > 0 && values->spdy < 0) || values->suicideBurnActive)
+    {
+        // logfile << logValsToCsv(values);
+        values->throttle = dSuicide / values->alt;
+        if(values->throttle > 1 && values->ctEngines < 9)
+        {
+            values->ctEngines++;
+        }
+        else if(values->throttle <= 0.2 && values->ctEngines > 1)
+        {
+            values->ctEngines--;
+        }
+        // values->throttle = 1;
+        values->suicideBurnActive = 1;
+        // values->stepsize = 0.0001;
+    }
+}
+
+// volatile uint32_t id = 0; 
 void writeToFile(struct vals *values, double val)
 {
     sem_wait(&sem1);
-    f << val << ", " << values->alt << ", " << values->spdy << ", " << values->angle << endl;
+    f << val << ", " << values->alt << ", " << values->spdy << ", " << values->vehMass << endl;
     sem_post(&sem1);
 }
 
@@ -66,51 +134,13 @@ void output()
     while (notdone)
     {
         system("clear");
-        if(tempOut != nullptr) printVals(tempOut);
+        if(tempOut != nullptr) 
+        {
+            printVals(tempOut);
+        }
 #ifndef asFastAsPossible
         sem_wait(&sem1);
 #endif
-    }
-}
-
-void autoland(struct vals *values)
-{
-    double netAcceleration = values->accVehicle + values->g; //Max Possible Acceleration
-    double speedVector = sqrt(pow(values->spdy, 2) + pow(values->spdx, 2));
-    double tSuicide = speedVector / netAcceleration;
-    double dSuicide = (tSuicide * tSuicide * netAcceleration) / 2; // S = 1/2 * a * t²
-    double angleRetrograde = rad2deg(atan(values->spdx / values->spdy));
-    values->angle = angleRetrograde;
-    if(values->entryBurnActive == 0 && values->alt < 6e4 && values->spdy < -1000)
-    {
-        values->throttle = 1.0;
-        values->entryBurnActive = 1;
-    }
-    else if(values->entryBurnActive == 1 && values->alt < 6e4 && values->spdy > -700)
-    {
-        values->throttle = 0.0;
-        values->entryBurnActive = 2;
-    }
-
-    if (values->alt <= 0)
-    {
-        values->suicideBurnActive = 0;
-        values->throttle = 0.0;
-    }
-    else if ((dSuicide >= values->alt && values->alt < 10000 && values->alt > 0 && values->spdy < 0) || values->suicideBurnActive)
-    {
-        values->throttle = dSuicide / values->alt;
-        if(values->throttle > 1 && values->ctEngines < 9)
-        {
-            values->ctEngines++;
-        }
-        else if(values->throttle <= 0.2 && values->ctEngines > 1)
-        {
-            values->ctEngines--;
-        }
-        // values->throttle = 1;
-        values->suicideBurnActive = 1;
-        values->stepsize = 0.0001;
     }
 }
 
@@ -126,18 +156,20 @@ void executeFlightPath(double valToVariate)
     temp->ctEngines = 9;
     while (temp->spdx < valToVariate)
     {
+#ifndef testing
 #ifndef asFastAsPossible
         sem_wait(&sem2);
 #endif
-        if(temp->spdy > 10.0 && temp->spdy < 300.0 && pitchManeuverFin == 0)
+#endif
+        if(temp->spdy > 10.0 && temp->spdy < 500.0 && pitchManeuverFin == 0)
         {
             temp->angle = 10.0;
         }
-        else if((temp->spdy != 0 && temp->spdy >= 300.0) || pitchManeuverFin)
+        else if((temp->spdy != 0 && temp->spdy >= 500.0) || pitchManeuverFin)
         {
             pitchManeuverFin = 1;
             // double anglePrograde = rad2deg(atan(temp->spdx / temp->spdy));
-            double desiredAngle = 90.0*(exp(temp->alt / 100000.0) - 1);
+            double desiredAngle = 90.0*(exp(temp->alt / 150000.0) - 1);
             if(desiredAngle > 90.0) desiredAngle = 90.0;
             temp->angle = desiredAngle;
         }
@@ -147,8 +179,10 @@ void executeFlightPath(double valToVariate)
     temp->ctEngines = 3;
     while (temp->spdy >= 0)
     {
+#ifndef testing
 #ifndef asFastAsPossible
         sem_wait(&sem2);
+#endif
 #endif
         // double anglePrograde = rad2deg(atan(temp->spdx / temp->spdy));
         if(temp->spdy < 25)
@@ -174,30 +208,32 @@ void executeFlightPath(double valToVariate)
     temp->throttle = 0;
     while (temp->alt > 100000 && temp->alt < INFINITY)
     {
+#ifndef testing
 #ifndef asFastAsPossible
         sem_wait(&sem2);
+#endif
 #endif
         temp->angle = 0;
         doStep(temp);
     }
     
-
     while (temp->alt > 0 && temp->spdy < 0)
     {
         autoland(temp);
-        // if(temp->alt < 899.33)
-        // {
-        //     temp->throttle = 1.0;
-        // }
+#ifndef testing
 #ifndef asFastAsPossible
         sem_wait(&sem2);
 #endif
+#endif
         doStep(temp);
     }
-    // writeToFile(temp, valToVariate);
-    // system("clear");
-    // printVals(temp);
     notdone = false;
+#ifdef testing
+    writeToFile(temp, valToVariate);
+#else
+    system("clear");
+    printVals(temp);
+#endif
 }
 
 void startGUIThreads()
@@ -208,7 +244,7 @@ void startGUIThreads()
     const uint16_t threads = 1;
 #endif
     std::thread tmp[threads];
-    tmp[0] = std::thread(executeFlightPath, 6000);
+    tmp[0] = std::thread(executeFlightPath, 7800);
 #ifndef asFastAsPossible
     tmp[1] = std::thread(output);
     tmp[2] = std::thread(timing);
@@ -250,10 +286,14 @@ int main()
 {
     sem_init(&sem1, 0, 0);
     sem_init(&sem2, 0, 0);
-    // startNoGUIThreads();
+#ifdef testing
+    startNoGUIThreads();
+#else
     startGUIThreads();
+#endif
     semctl(semid1, 0, IPC_RMID, 0);
     semctl(semid2, 0, IPC_RMID, 0);
     f.close();
+    logfile.close();
     return 0;
 }

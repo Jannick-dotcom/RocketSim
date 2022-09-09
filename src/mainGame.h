@@ -6,7 +6,11 @@
 #include <iostream>
 #include "vectors/vectors.hpp"
 
+#define testing // comment this out to disable testing mode (no graphics)
+// #define asFastAsPossible // comment this out to disable asFastAsPossible mode (no sleep)
+
 using namespace std;
+ofstream logfile("log.csv");
 
 struct vals
 {
@@ -46,6 +50,20 @@ struct vals
     double alt;            //[m]
     double stepsize;       //[s]
 };
+
+//create first line with elements of vals for csv file
+string createHeader()
+{
+    string header = "spdy;spdx;angle;g;accVehicle;vehThrust;engThrust;ctEngines;vehMass;dryMass;radius;area;coefficient;density;SeaLvlpressure;pressure;accDragX;accDragY;suicideBurnActive;entryBurnActive;fuelConsumption;throttle;alt;stepsize\n";
+    return header;
+}
+
+//create line with values of vals for csv file
+string logValsToCsv(struct vals *temp)
+{
+    string line = to_string(-temp->spdy) + ";" + to_string(temp->spdx) + ";" + to_string(temp->angle) + ";" + to_string(temp->g) + ";" + to_string(temp->accVehicle) + ";" + to_string(temp->vehThrust) + ";" + to_string(temp->engThrust) + ";" + to_string(temp->ctEngines) + ";" + to_string(temp->vehMass) + ";" + to_string(temp->dryMass) + ";" + to_string(temp->radius) + ";" + to_string(temp->area) + ";" + to_string(temp->coefficient) + ";" + to_string(temp->density) + ";" + to_string(temp->SeaLvlpressure) + ";" + to_string(temp->pressure) + ";" + to_string(temp->accDragX) + ";" + to_string(temp->accDragY) + ";" + to_string(temp->suicideBurnActive) + ";" + to_string(temp->entryBurnActive) + ";" + to_string(temp->fuelConsumption) + ";" + to_string(temp->throttle) + ";" + to_string(temp->alt) + ";" + to_string(temp->stepsize) + "\n";
+    return line;
+}
 
 void printRocket(struct vals *temp)
 {
@@ -98,6 +116,9 @@ void printVals(struct vals *temp)
 
 void init(struct vals *temp)
 {
+    #ifndef testing
+    logfile.write(createHeader().c_str(), createHeader().length());
+    #endif
     temp->spdy = 0.0f;                     //[m/s]
     temp->spdx = 0.0f;
     temp->alt = 0.0f;                      //[m]
@@ -156,7 +177,7 @@ void doStep(struct vals *temp)
     temp->accVehicle = (temp->vehThrust / temp->vehMass);
     double centrifugeForce = temp->vehMass * pow(temp->spdx, 2) / (temp->earthRadius + temp->alt);
     double forceToEarth = temp->gravConst * ((temp->earthMass*temp->vehMass) / ((temp->earthRadius+temp->alt) * (temp->earthRadius+temp->alt)));
-    double accelerationToEarth = (centrifugeForce-forceToEarth) / temp->vehMass;
+    double accelerationToEarth = (-forceToEarth) / temp->vehMass;
     temp->g = accelerationToEarth;
     temp->spdy = temp->spdy + ((temp->g) + (temp->accVehicle * temp->throttle) * cos((temp->angle * 2 * M_PI) / 360.0) + temp->accDragY) * temp->stepsize;
     temp->spdx = temp->spdx + ((temp->accVehicle * temp->throttle) * sin((temp->angle * 2 * M_PI) / 360.0) + temp->accDragX) * temp->stepsize;
