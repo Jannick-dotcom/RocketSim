@@ -3,23 +3,29 @@ import numpy as np
 import time
 
 file = open("test.txt")
-x = []
-yalt = []
-yspd = []
+
+matrix = []
 
 for line in file:
-    x.append(float(line.split(",")[0]))
-    yalt.append(float(line.split(",")[1]))
-    yspd.append(float(line.split(",")[2]))
+    matrix.append([float(x) for x in line.split(",")])
 
-# x = np.linspace(0, len(yspd), len(yspd))
-# dx = x[1]-x[0]
-# dydx = np.gradient(yspd, dx)
+def getSortingItem(element):
+    return element[0]
 
-plt.figure("landing")
+matrix.sort(key=getSortingItem)
+
+x = [row[0] for row in matrix]
+yalt = [row[1] for row in matrix]
+yspd = [row[2] for row in matrix]
+mass = [row[3] for row in matrix]
+
+plt.figure("landing_altitude")
 plt.plot(x,yalt, label="alt")
-# plt.plot(x, dydx)
+plt.legend()
+plt.figure("landing_speed")
 plt.plot(x, yspd, label="spd")
 plt.legend()
-# plt.plot(z)
+plt.figure("landing_mass")
+plt.plot(x, mass, label="mass")
+plt.legend()
 plt.show()

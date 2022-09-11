@@ -95,7 +95,6 @@ void autoland(struct vals *values)
     }
 }
 
-// volatile uint32_t id = 0; 
 void writeToFile(struct vals *values, double val)
 {
     sem_wait(&sem1);
@@ -154,7 +153,7 @@ void executeFlightPath(double valToVariate)
     init(temp);
     temp->throttle = 1.0;
     temp->ctEngines = 9;
-    while (temp->spdx < valToVariate)
+    while (temp->spdx < valToVariate && temp->spdy >= -1)
     {
 #ifndef testing
 #ifndef asFastAsPossible
@@ -244,7 +243,7 @@ void startGUIThreads()
     const uint16_t threads = 1;
 #endif
     std::thread tmp[threads];
-    tmp[0] = std::thread(executeFlightPath, 7800);
+    tmp[0] = std::thread(executeFlightPath, 13360);
 #ifndef asFastAsPossible
     tmp[1] = std::thread(output);
     tmp[2] = std::thread(timing);
@@ -266,18 +265,19 @@ void startNoGUIThreads()
     const uint16_t threads = std::thread::hardware_concurrency(); //10
     std::thread tmp[threads];
     sem_post(&sem1);
-    for (uint32_t i = 250; i < 1250; i++)
+    uint8_t running_threads = 0;
+    for (uint32_t i = 12700; i < 13000; i++)
     {
-        for (uint8_t thr = 0; thr < threads; thr++)
+        tmp[running_threads] = std::thread(executeFlightPath, double(i)); 
+        pthread_setname_np(tmp[running_threads].native_handle(), "calc");
+        running_threads++;
+        if(running_threads >= threads)
         {
-            tmp[thr] = std::thread(executeFlightPath, double(i) + (double(thr) / double(threads)));
-            pthread_setname_np(tmp[thr].native_handle(), "calc");
-            // tmp[thr].detach();
-        }
-        for (uint8_t thr = 0; thr < threads; thr++)
-        {
-            // pthread_setname_np(tmp[thr].native_handle(), "calc");
-            tmp[thr].join();
+            for (uint16_t thr = 0; thr < running_threads; thr++)
+            {
+                tmp[thr].join();
+            }
+            running_threads = 0;
         }
     }
 }
