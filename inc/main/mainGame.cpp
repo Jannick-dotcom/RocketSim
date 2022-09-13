@@ -1,53 +1,7 @@
-#ifndef mainGame_h
-#define mainGame_h
-
-#include <math.h>
-#include <stdint.h>
-#include <iostream>
-#include "vectors.hpp"
-
-#define testing // comment this out to disable testing mode (no graphics)
-// #define asFastAsPossible // comment this out to disable asFastAsPossible mode (no sleep)
+#include "mainGame.hpp"
 
 using namespace std;
-ofstream logfile("outputs/log.csv");
-
-struct vals
-{
-    vektor speed;
-    vektor position;
-    double angle; //[°]
-
-    vektor g;           //[m/s²]
-    double earthMass;   //[kg]
-    double earthRadius; //[m]
-    const double gravConst = 6.6743 * pow(10, -11);
-
-    double accVehicle; //[m/s²]
-    double vehThrust;  //[N]
-    double engThrust;  //[N]
-    int ctEngines;
-
-    const double initialMass = 267000;
-    double vehMass;                 //[kg]
-    double dryMass;                 //[kg]
-
-    double radius;                  //[m] of rocket
-    double area;                    //[m²]
-    const double coefficient = 100; //????????
-    double density;
-    double SeaLvlpressure;
-    double pressure;
-    vektor drag;
-
-    int suicideBurnActive;
-    int entryBurnActive;
-    double fuelConsumption; //[kg/s]
-    double throttle;        //[%]
-
-    double alt;            //[m]
-    double stepsize;       //[s]
-};
+ofstream logfile("outputs/log.csv", ios::out);
 
 //create first line with elements of vals for csv file
 string createHeader()
@@ -131,7 +85,7 @@ void init(struct vals *temp)
     temp->fuelConsumption = 1451.0f / temp->ctEngines; //[kg/s]
     temp->throttle = 0.0f;                                     //[%]
 
-    temp->stepsize = 0.001; //[s]
+    temp->stepsize = 0.1; //[s]
 
     temp->radius = 12.0;
     temp->area = M_1_PI * pow(temp->radius, 2);
@@ -193,5 +147,3 @@ void doStep(struct vals *temp)
     logfile << logValsToCsv(temp);
     #endif
 }
-
-#endif

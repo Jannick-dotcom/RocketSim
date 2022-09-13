@@ -9,8 +9,11 @@
                 "-g",
                 "-pthread",
                 "-I${workspaceFolder}/inc/main/",
+                "-I${workspaceFolder}/inc/autoland/",
                 "-I${workspaceFolder}/inc/vectors/",
+                "${workspaceFolder}/inc/autoland/autoland.cpp",
                 "${workspaceFolder}/inc/vectors/vectors.cpp",
+                "${workspaceFolder}/inc/main/*.cpp",
                 "${workspaceFolder}/src/main.cpp",
                 "-o",
                 "${workspaceFolder}/build/a.out"
