@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 
-file = open("test.txt")
+file = open("outputs/test.txt")
 
 matrix = []
 

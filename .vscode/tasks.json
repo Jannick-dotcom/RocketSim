@@ -7,12 +7,13 @@
             "args": [
                 "-Wall",
                 "-g",
-                "/media/jannick/DATA/Daten/SoftwareProjekte/C++/Linux/RocketSim/src/main.cpp",
                 "-pthread",
-                "-Isrc",
-                "-Isrc/autoland",
+                "-I${workspaceFolder}/inc/main/",
+                "-I${workspaceFolder}/inc/vectors/",
+                "${workspaceFolder}/inc/vectors/vectors.cpp",
+                "${workspaceFolder}/src/main.cpp",
                 "-o",
-                "/media/jannick/DATA/Daten/SoftwareProjekte/C++/Linux/RocketSim/build/a.out"
+                "${workspaceFolder}/build/a.out"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
