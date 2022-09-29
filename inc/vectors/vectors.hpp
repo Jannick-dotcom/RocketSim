@@ -41,7 +41,7 @@ public:
     void sety(double y);
     void setz(double z);
 
-    void normalize();
+    vektor normalize();
 };
 
 #endif

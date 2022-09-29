@@ -28,6 +28,7 @@ volatile bool notdone = true;
 struct vals *tempOut; // tempOut is a pointer to a struct of type vals
 
 using namespace std; 
+#ifdef testing
 ofstream f("outputs/test.txt"); // open file for writing
 
 void writeToFile(struct vals *values, double val)
@@ -36,6 +37,7 @@ void writeToFile(struct vals *values, double val)
     f << val << ", " << values->alt << ", " << values->speed.getlength() << ", " << values->vehMass << endl;
     sem_post(&sem1);
 }
+#endif
 
 void timing()
 {
@@ -87,24 +89,24 @@ void executeFlightPath(double valToVariate)
     init(temp);
     temp->throttle = 1.0;
     temp->ctEngines = 9;
-    while (temp->speed.getlength() < valToVariate && temp->speed.gety() >= -1)
+    while (temp->speed.getlength() < valToVariate && temp->vehMass > temp->dryMass)
     {
 #ifndef testing
 #ifndef asFastAsPossible
         sem_wait(&sem2);
 #endif
 #endif
-        double desiredAngle = 90.0*(exp(temp->alt / 150000.0) - 1);
+        double desiredAngle = 90.0*(exp(temp->alt / 120000.0) - 1);
         if(desiredAngle > 90.0) desiredAngle = 90.0;
         else if(desiredAngle < 0.0) desiredAngle = 0.0;
-        temp->angle = desiredAngle;
+        temp->orientation = vektor(sin(deg2rad(desiredAngle)), cos(deg2rad(desiredAngle)), 0);
         doStep(temp);
     }
     temp->throttle = 0.0;
     temp->ctEngines = 3;
     while (temp->alt > 0)
     {
-        if(temp->alt < 100000 && temp->alt < INFINITY)
+        if(temp->alt < 60000 && temp->alt < INFINITY)
         {
             autoland(temp);
         }
@@ -132,7 +134,7 @@ void startGUIThreads()
     const uint16_t threads = 1;
 #endif
     std::thread tmp[threads];
-    tmp[0] = std::thread(executeFlightPath, 7700);
+    tmp[0] = std::thread(executeFlightPath, 7400);
 #ifndef asFastAsPossible
     tmp[1] = std::thread(output);
     tmp[2] = std::thread(timing);
@@ -155,7 +157,7 @@ void startNoGUIThreads()
     std::thread tmp[threads];
     sem_post(&sem1);
     uint8_t running_threads = 0;
-    for (uint32_t i = 1000; i < 7500; i++)
+    for (uint32_t i = 500; i < 7500; i++)
     {
         tmp[running_threads] = std::thread(executeFlightPath, double(i)); 
         pthread_setname_np(tmp[running_threads].native_handle(), "calc");
@@ -167,6 +169,13 @@ void startNoGUIThreads()
                 tmp[thr].join();
             }
             running_threads = 0;
+        }
+    }
+    if(running_threads > 0)
+    {
+        for (uint16_t thr = 0; thr < running_threads; thr++)
+        {
+            tmp[thr].join();
         }
     }
 }
@@ -182,7 +191,10 @@ int main()
 #endif
     semctl(semid1, 0, IPC_RMID, 0);
     semctl(semid2, 0, IPC_RMID, 0);
+    #ifdef testing
     f.close();
+    #else
     logfile.close();
+    #endif
     return 0;
 }

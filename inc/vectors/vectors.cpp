@@ -120,13 +120,15 @@ void vektor::setz(double z)
     this->z = z;
 }
 
-void vektor::normalize()
+vektor vektor::normalize()
 {
+    vektor temp = *this;
     double length = this->getlength();
     if(length != 0.0)
     {
-        this->x /= length;
-        this->y /= length;
-        this->z /= length;
+        temp.setx(this->x / length);
+        temp.sety(this->y / length);
+        temp.setz(this->z / length);
     }
+    return temp;
 }

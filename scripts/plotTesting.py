@@ -19,9 +19,9 @@ yalt = [row[1] for row in matrix]
 yspd = [row[2] for row in matrix]
 mass = [row[3] for row in matrix]
 
-plt.figure("landing_altitude")
-plt.plot(x,yalt, label="alt")
-plt.legend()
+# plt.figure("landing_altitude")
+# plt.plot(x,yalt, label="alt")
+# plt.legend()
 plt.figure("landing_speed")
 plt.plot(x, yspd, label="spd")
 plt.legend()

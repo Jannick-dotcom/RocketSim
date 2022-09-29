@@ -7,14 +7,14 @@
 #include <fstream>
 #include "vectors.hpp"
 
-// #define testing // comment this out to disable testing mode (no graphics)
+#define testing // comment this out to disable testing mode (no graphics)
 // #define asFastAsPossible // comment this out to disable asFastAsPossible mode (no sleep)
 
 struct vals
 {
     vektor speed;
     vektor position;
-    double angle; //[°]
+    vektor orientation;
 
     vektor g;           //[m/s²]
     double earthMass;   //[kg]
@@ -26,7 +26,7 @@ struct vals
     double engThrust;  //[N]
     int ctEngines;
 
-    const double initialMass = 267000;
+    double initialMass;
     double vehMass;                 //[kg]
     double dryMass;                 //[kg]
 
