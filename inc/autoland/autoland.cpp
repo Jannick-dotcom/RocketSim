@@ -30,8 +30,18 @@ double playBackwards(struct vals *values)
 
 void autoland(struct vals *values)
 {
-    vektor pos;//= values->position;
-    double verticalSpeed = ((pos = values->position).normalize() * values->speed);
+    static double lastAlt;
+    double verticalSpeed;
+    if(lastAlt == 0)
+    {
+        lastAlt = values->alt;
+        return;
+    }
+    else
+    {
+        verticalSpeed = (values->alt - lastAlt) / values->stepsize;
+        lastAlt = values->alt;
+    }
     if(verticalSpeed >= 0) 
     {
         values->throttle = 0;
@@ -40,9 +50,7 @@ void autoland(struct vals *values)
     //Entry Burn
     double dSuicide = 0.0;
     // double angleRetrograde = rad2deg(atan(values->speed.getx() / values->speed.gety()));
-    vektor dir = values->speed;
-    dir = dir.normalize() * -1;
-    values->orientation = dir;
+    values->orientation = values->speed.normalize() * -1; //Retrograde
     if(values->entryBurnActive == 0 && values->alt < 6e4 && values->speed.getlength() > 1500)
     {
         values->throttle = 1.0;
