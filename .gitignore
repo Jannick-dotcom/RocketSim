@@ -1,6 +1,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/c++,linux
 # Edit at https://www.toptal.com/developers/gitignore?templates=c++,linux
 
+*.csv
+*.txt
+
 ### C++ ###
 # Prerequisites
 *.d
