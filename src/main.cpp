@@ -134,7 +134,7 @@ void startGUIThreads()
     const uint16_t threads = 1;
 #endif
     std::thread tmp[threads];
-    tmp[0] = std::thread(executeFlightPath, 7400);
+    tmp[0] = std::thread(executeFlightPath, 8000);
 #ifndef asFastAsPossible
     tmp[1] = std::thread(output);
     tmp[2] = std::thread(timing);
@@ -157,7 +157,7 @@ void startNoGUIThreads()
     std::thread tmp[threads];
     sem_post(&sem1);
     uint8_t running_threads = 0;
-    for (uint32_t i = 500; i < 7500; i++)
+    for (uint32_t i = 500; i < 9000; i++)
     {
         tmp[running_threads] = std::thread(executeFlightPath, double(i)); 
         pthread_setname_np(tmp[running_threads].native_handle(), "calc");
