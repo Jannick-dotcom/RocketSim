@@ -33,7 +33,7 @@ vektor vektor::operator*(double val)
 
 double vektor::operator*(vektor val)
 {
-    return this->x * val.x + this->y + val.y + this->z + val.z;
+    return this->x * val.x + this->y * val.y + this->z * val.z;
 }
 
 vektor operator+(double val, vektor THIS)
