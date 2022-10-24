@@ -19,7 +19,9 @@
 #include "helpers.hpp"
 #include "vectors.hpp"
 #include "autoland.hpp"
-#include "threadPool.hpp"
+#include <memory>
+#include <boost/asio.hpp>
+#include <boost/thread.hpp>
 
 // extern std::ofstream logfile;
 
