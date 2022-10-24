@@ -8,6 +8,7 @@
 #include "vectors.hpp"
 
 #define testing // comment this out to disable testing mode (no graphics)
+#define multithreading
 // #define asFastAsPossible // comment this out to disable asFastAsPossible mode (no sleep)
 
 struct vals
@@ -19,7 +20,7 @@ struct vals
     vektor g;           //[m/s²]
     double earthMass;   //[kg]
     double earthRadius; //[m]
-    const double gravConst = 6.6743 * pow(10, -11);
+    double gravConst;
 
     double accVehicle; //[m/s²]
     double vehThrust;  //[N]
@@ -32,7 +33,7 @@ struct vals
 
     double radius;                  //[m] of rocket
     double area;                    //[m²]
-    const double coefficient = 100; //????????
+    double coefficient; //????????
     double density;
     double SeaLvlpressure;
     double pressure;

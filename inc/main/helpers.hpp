@@ -5,7 +5,12 @@
 #include <math.h>
 #include <stdint.h>
 #include "mainGame.hpp"
-
+struct parameter
+{
+    int id;
+    double valToVariate;
+    // struct vals *values;
+};
 // using namespace std;
 
 double findGAtAlt(struct vals *temp, double alt);

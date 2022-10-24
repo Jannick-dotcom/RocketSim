@@ -30,39 +30,25 @@ double playBackwards(struct vals *values)
 
 void autoland(struct vals *values)
 {
-    static double lastAlt;
-    double verticalSpeed;
-    if(lastAlt == 0)
+    double verticalSpeed = values->speed * values->position.normalize();
+    if(verticalSpeed > 0 && !values->suicideBurnActive)
     {
-        lastAlt = values->alt;
-        return;
-    }
-    else
-    {
-        verticalSpeed = (values->alt - lastAlt) / values->stepsize;
-        lastAlt = values->alt;
-    }
-    if(verticalSpeed >= 0) 
-    {
-        values->throttle = 0;
         return;
     }
     //Entry Burn
     double dSuicide = 0.0;
-    // double angleRetrograde = rad2deg(atan(values->speed.getx() / values->speed.gety()));
     values->orientation = values->speed.normalize() * -1; //Retrograde
-    if(values->entryBurnActive == 0 && values->alt < 6e4 && values->speed.getlength() > 1500)
+    if(values->entryBurnActive == 0 && values->alt < 65e3 && values->speed.getlength() > 2300)
     {
         values->throttle = 1.0;
         values->entryBurnActive = 1;
     }
-    else if(values->entryBurnActive == 1 && values->alt < 6e4 && values->speed.getlength() < 1200)
+    else if(values->entryBurnActive == 1 && values->alt < 6e4 && values->speed.getlength() < 1600)
     {
         values->throttle = 0.0;
         values->entryBurnActive = 2;
     }
 
-    // if(values->entryBurnActive == 2 && values->alt < 10000) dSuicide = playBackwards(values);
     //Suicide Burn
     if(values->suicideBurnActive == 0)
     {
@@ -92,7 +78,6 @@ void autoland(struct vals *values)
     }
     if ((dSuicide >= values->alt && values->alt > 0 && values->alt < 10000) || values->suicideBurnActive)
     {
-        values->stepsize = 0.0005;
         values->throttle = dSuicide / values->alt;
         if(values->throttle > 1.5 && values->ctEngines < 9)
         {

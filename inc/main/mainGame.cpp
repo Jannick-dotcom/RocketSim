@@ -1,9 +1,9 @@
 #include "mainGame.hpp"
 
 using namespace std;
-#ifndef testing
-ofstream logfile("outputs/log.csv", ios::out);
-#endif
+// #ifndef testing
+// ofstream logfile("outputs/log.csv", ios::out);
+// #endif
 
 //create first line with elements of vals for csv file
 string createHeader()
@@ -73,9 +73,10 @@ void printVals(struct vals *temp)
 void init(struct vals *temp)
 {
     #ifndef testing
-    logfile.write(createHeader().c_str(), createHeader().length());
+    // logfile.write(createHeader().c_str(), createHeader().length());
     #endif
-    
+    temp->gravConst = 6.6743 * pow(10, -11);
+    temp->coefficient = 100;
     temp->alt = 0.0f;                      //[m]
     temp->earthMass = 5.972 * pow(10, 24); //[kg]
     temp->earthRadius = 6371000.0;
@@ -90,7 +91,7 @@ void init(struct vals *temp)
     temp->fuelConsumption = 1451.0f / temp->ctEngines; //[kg/s]
     temp->throttle = 0.0f;                                     //[%]
 
-    temp->stepsize = 0.01; //[s]
+    temp->stepsize = 0.1; //[s]
 
     temp->radius = 12.0;
     temp->area = M_1_PI * pow(temp->radius, 2);
@@ -121,17 +122,14 @@ void doStep(struct vals *temp)
     if(temp->alt > 120000) temp->density = 0;
 
     double absdrag = (temp->coefficient * temp->density * pow(temp->speed.getlength(), 2) * temp->area * 0.5) / temp->vehMass;
-    temp->drag = temp->speed.normalize();
-    temp->drag = temp->drag * -absdrag;
+    temp->drag = temp->speed.normalize() * -absdrag;
 
     temp->vehThrust = temp->engThrust * temp->ctEngines;
     temp->accVehicle = (temp->vehThrust / temp->vehMass);
 
-    temp->g = vektor()-temp->position.normalize();
-
     double forceToEarth = temp->gravConst * ((temp->earthMass*temp->vehMass) / ((temp->earthRadius+temp->alt) * (temp->earthRadius+temp->alt)));
     double accelerationToEarth = forceToEarth / temp->vehMass;
-    temp->g = temp->g * accelerationToEarth;
+    temp->g = (vektor()-temp->position.normalize()) * accelerationToEarth;
 
     vektor currentAcceleration = (temp->g + (temp->accVehicle * temp->throttle) * temp->orientation + temp->drag) * temp->stepsize;
     temp->speed = temp->speed + currentAcceleration;
@@ -143,7 +141,15 @@ void doStep(struct vals *temp)
     else
         temp->fuelConsumption = 0;
     temp->vehMass = temp->vehMass - (temp->fuelConsumption * temp->throttle * temp->ctEngines * temp->stepsize);
+    if(temp->alt > 120000)
+    {
+        temp->stepsize = 0.1;
+    }
+    else
+    {
+        temp->stepsize = 0.0005;
+    }
     #ifndef testing
-    logfile << logValsToCsv(temp);
+    // logfile << logValsToCsv(temp);
     #endif
 }
