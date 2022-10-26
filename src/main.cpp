@@ -189,7 +189,7 @@ void startGUIThreads()
 void startNoGUIThreads()
 {
     sem_post(&sem1);
-    boost::asio::thread_pool pool(11);
+    boost::asio::thread_pool pool(std::thread::hardware_concurrency()-1);
     // Submit a function to the pool.
 
     for(uint16_t i = 0; i < 100000; i++)
