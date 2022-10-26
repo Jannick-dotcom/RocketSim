@@ -1,4 +1,5 @@
 #include "helpers.hpp"
+const std::string OutputPath = "/home/jannick/Desktop/outputs/";
 
 double findGAtAlt(struct vals *temp, double alt)
 {

@@ -51,5 +51,6 @@ struct vals
 void printVals(struct vals *temp);
 void init(struct vals *temp);
 void doStep(struct vals *temp);
+void lastStep();
 
 #endif

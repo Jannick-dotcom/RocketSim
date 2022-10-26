@@ -23,13 +23,12 @@
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 
-// extern std::ofstream logfile;
-
 static int semid1, semid2; // semaphore ids
 sem_t sem1; // semaphore for mainGame
 sem_t sem2; // semaphore for mainGame
 
 volatile bool notdone = true; 
+
 
 using namespace std; 
 #ifdef testing
@@ -39,7 +38,7 @@ void writeToFile(struct vals *values, double val)
     #ifdef multithreading
     sem_wait(&sem1);
     #endif
-    ofstream f("outputs/test.txt", std::ios_base::app); // open file for writing
+    ofstream f(OutputPath + "test.txt", std::ios_base::app); // open file for writing
     f << val << ", " << values->alt << ", " << values->speed.getlength() << ", " << values->vehMass << endl;
     f.close();
     #ifdef multithreading
@@ -52,7 +51,7 @@ void timing()
 {
     uint16_t refreshOut = 20;
     uint16_t refreshCalc = 1000;
-    uint8_t timeWarp = 20;
+    uint8_t timeWarp = 10;
     uint64_t counterOut = 0;
     uint64_t counterUpdate = 0;
     while (notdone)
@@ -87,6 +86,7 @@ void output()
         sem_wait(&sem1);
 #endif
     }
+    cout << "END" << endl;
 }
 
 #endif
@@ -96,7 +96,7 @@ void debugLog(string filename, struct vals *values)
     #ifdef multithreading
     // sem_wait(&sem1);
     #endif
-    ofstream f("/home/jannick/Desktop/outputs/" + filename, std::ios_base::app); // open file for appending
+    ofstream f(OutputPath + filename, std::ios_base::app); // open file for appending
     f << values->speed.getlength() << endl;
     f.close();
     #ifdef multithreading
@@ -107,7 +107,7 @@ void debugLog(string filename, struct vals *values)
 void executeFlightPath(double valToVariate)
 {
     struct vals values;
-    struct vals *currentValues = &values;//(struct vals*) malloc(sizeof(struct vals));//param.values;
+    struct vals *currentValues = &values;
     if(currentValues == nullptr)
     {
         cout << "Error allocating memory" << endl;
@@ -120,7 +120,7 @@ void executeFlightPath(double valToVariate)
     init(currentValues);
     currentValues->throttle = 1.0;
     currentValues->ctEngines = 9;
-    while (currentValues->speed.getlength() < valToVariate && currentValues->vehMass > currentValues->dryMass)
+    while (currentValues->speed.getlength() < valToVariate && currentValues->vehMass > (currentValues->dryMass + 10.0))
     {
 #ifndef testing
 #ifndef asFastAsPossible
@@ -149,6 +149,7 @@ void executeFlightPath(double valToVariate)
 #endif
         doStep(currentValues);
     }
+    lastStep();
 #ifdef testing
     writeToFile(currentValues, valToVariate);
 #else
@@ -156,7 +157,6 @@ void executeFlightPath(double valToVariate)
     system("clear");
     printVals(currentValues);
 #endif
-    // free(currentValues);
 }
 
 #ifndef testing
@@ -168,7 +168,7 @@ void startGUIThreads()
     const uint16_t threads = 1;
 #endif
     std::thread tmp[threads];
-    tmp[0] = std::thread(executeFlightPath, 501.0);
+    tmp[0] = std::thread(executeFlightPath, 2964.0);
 #ifndef asFastAsPossible
     tmp[1] = std::thread(output);
     tmp[2] = std::thread(timing);
@@ -192,9 +192,9 @@ void startNoGUIThreads()
     boost::asio::thread_pool pool(11);
     // Submit a function to the pool.
 
-    for(uint16_t i = 500; i < 7000; i++)
+    for(uint16_t i = 0; i < 100000; i++)
     {
-        boost::asio::post(pool, boost::bind(executeFlightPath, double(i)));
+        boost::asio::post(pool, boost::bind(executeFlightPath, double(i/10.0)));
     }
     pool.join();
 }
@@ -202,11 +202,10 @@ void startNoGUIThreads()
 
 int main()
 {
-    mkdir("outputs", 0777);
     sem_init(&sem1, 0, 0);
     sem_init(&sem2, 0, 0);
 #ifdef testing
-    remove("outputs/test.txt");
+    remove((OutputPath + "test.txt").c_str());
     startNoGUIThreads();
 #else
     startGUIThreads();

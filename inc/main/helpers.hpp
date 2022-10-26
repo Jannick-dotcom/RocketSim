@@ -19,4 +19,6 @@ double rad2deg(double rad);
 
 double deg2rad(double deg);
 
+extern const std::string OutputPath;// = "/home/jannick/Desktop/outputs/";
+
 // #endif

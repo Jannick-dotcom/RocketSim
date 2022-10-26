@@ -1,9 +1,9 @@
 #include "mainGame.hpp"
 
 using namespace std;
-// #ifndef testing
-// ofstream logfile("outputs/log.csv", ios::out);
-// #endif
+#ifndef testing
+ofstream logfile(OutputPath + "log.csv", ios::out);
+#endif
 
 //create first line with elements of vals for csv file
 string createHeader()
@@ -53,13 +53,12 @@ void printGround(struct vals *temp)
 
 void printVals(struct vals *temp)
 {
-    vektor pos = temp->position.normalize();
-    double verticalSpeed = (pos * temp->speed);
+    double verticalSpeed = (temp->position.normalize() * temp->speed);
     std::cout << "Speed: " << temp->speed.getlength() << " m/s\n";
     std::cout << "Vertical Speed: " << verticalSpeed << " m/s\n";
     std::cout << "Altitude: " << temp->alt << " m\n";
     // std::cout << "Angle: " << temp->angle << " °\n";
-    std::cout << "total Acceleration: " << (temp->accVehicle * temp->throttle) + temp->drag.getlength() + temp->g.getlength() << " m/s²\n";
+    std::cout << "total Acceleration: " << ((temp->accVehicle * temp->throttle * temp->orientation.normalize()) + temp->drag + temp->g).getlength() << " m/s²\n";
     std::cout << "g: " << temp->g.getlength() << "\t Drag: " << temp->drag.getlength() << "\t Engines: " << (temp->accVehicle * temp->throttle) << "\n";
     std::cout << "Fuel: " << ((temp->vehMass - temp->dryMass) / temp->initialMass) * 100.0 << " %\n";
     std::cout << "Throttle: " << temp->throttle * 100.0f << " %\n";
@@ -73,7 +72,7 @@ void printVals(struct vals *temp)
 void init(struct vals *temp)
 {
     #ifndef testing
-    // logfile.write(createHeader().c_str(), createHeader().length());
+    logfile.write(createHeader().c_str(), createHeader().length());
     #endif
     temp->gravConst = 6.6743 * pow(10, -11);
     temp->coefficient = 100;
@@ -91,7 +90,7 @@ void init(struct vals *temp)
     temp->fuelConsumption = 1451.0f / temp->ctEngines; //[kg/s]
     temp->throttle = 0.0f;                                     //[%]
 
-    temp->stepsize = 0.1; //[s]
+    temp->stepsize = 0.001; //[s]
 
     temp->radius = 12.0;
     temp->area = M_1_PI * pow(temp->radius, 2);
@@ -129,9 +128,9 @@ void doStep(struct vals *temp)
 
     double forceToEarth = temp->gravConst * ((temp->earthMass*temp->vehMass) / ((temp->earthRadius+temp->alt) * (temp->earthRadius+temp->alt)));
     double accelerationToEarth = forceToEarth / temp->vehMass;
-    temp->g = (vektor()-temp->position.normalize()) * accelerationToEarth;
+    temp->g = (temp->position.normalize()) * -accelerationToEarth;
 
-    vektor currentAcceleration = (temp->g + (temp->accVehicle * temp->throttle) * temp->orientation + temp->drag) * temp->stepsize;
+    vektor currentAcceleration = (temp->g + (temp->accVehicle * temp->throttle) * temp->orientation.normalize() + temp->drag) * temp->stepsize;
     temp->speed = temp->speed + currentAcceleration;
 
     temp->position = temp->position + (temp->speed * temp->stepsize);
@@ -141,15 +140,14 @@ void doStep(struct vals *temp)
     else
         temp->fuelConsumption = 0;
     temp->vehMass = temp->vehMass - (temp->fuelConsumption * temp->throttle * temp->ctEngines * temp->stepsize);
-    if(temp->alt > 120000)
-    {
-        temp->stepsize = 0.1;
-    }
-    else
-    {
-        temp->stepsize = 0.0005;
-    }
     #ifndef testing
-    // logfile << logValsToCsv(temp);
+        logfile << logValsToCsv(temp);
     #endif
+}
+
+void lastStep()
+{
+#ifndef testing
+    logfile.close();
+#endif
 }
