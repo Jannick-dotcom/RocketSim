@@ -39,7 +39,7 @@ void writeToFile(struct vals *values, double val)
     sem_wait(&sem1);
     #endif
     ofstream f(OutputPath + "test.txt", std::ios_base::app); // open file for writing
-    f << val << ", " << values->alt << ", " << values->speed.getlength() << ", " << values->vehMass << endl;
+    f << val << ", " << values->alt << ", " << values->speed.getlength() << ", " << ((values->vehMass - values->dryMass) / values->initialMass)*100.0 << endl;
     f.close();
     #ifdef multithreading
     sem_post(&sem1);
