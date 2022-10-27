@@ -192,7 +192,7 @@ void startNoGUIThreads()
     boost::asio::thread_pool pool(std::thread::hardware_concurrency()-1);
     // Submit a function to the pool.
 
-    for(uint16_t i = 0; i < 100000; i++)
+    for(uint32_t i = 0; i < 100000; i++)
     {
         boost::asio::post(pool, boost::bind(executeFlightPath, double(i/10.0)));
     }
