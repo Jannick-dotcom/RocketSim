@@ -88,9 +88,8 @@ void output()
     }
     cout << "END" << endl;
 }
-
 #endif
-
+#ifdef logging
 void debugLog(string filename, struct vals *values)
 {
     #ifdef multithreading
@@ -103,6 +102,7 @@ void debugLog(string filename, struct vals *values)
     // sem_post(&sem1);
     #endif
 }
+#endif
 
 void executeFlightPath(double valToVariate)
 {
@@ -131,7 +131,9 @@ void executeFlightPath(double valToVariate)
         if(desiredAngle > 90.0) desiredAngle = 90.0;
         else if(desiredAngle < 0.0) desiredAngle = 0.0;
         currentValues->orientation = vektor(sin(deg2rad(desiredAngle)), cos(deg2rad(desiredAngle)), 0);
-        // debugLog(to_string(int(param.valToVariate)) + ".csv", currentValues);
+        #ifdef logging
+        debugLog(to_string(int(valToVariate)) + ".csv", currentValues);
+        #endif
         doStep(currentValues);
     }
     currentValues->throttle = 0.0;
@@ -147,6 +149,9 @@ void executeFlightPath(double valToVariate)
         sem_wait(&sem2);
 #endif
 #endif
+        #ifdef logging
+        debugLog(to_string(int(valToVariate)) + ".csv", currentValues);
+        #endif
         doStep(currentValues);
     }
     lastStep();
