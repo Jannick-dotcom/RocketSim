@@ -1,7 +1,7 @@
 #include "mainGame.hpp"
 
 using namespace std;
-#ifndef testing
+#ifdef logging
 ofstream logfile(OutputPath + "log.csv", ios::out);
 #endif
 
@@ -60,7 +60,7 @@ void printVals(struct vals *temp)
     // std::cout << "Angle: " << temp->angle << " °\n";
     std::cout << "total Acceleration: " << ((temp->accVehicle * temp->throttle * temp->orientation.normalize()) + temp->drag + temp->g).getlength() << " m/s²\n";
     std::cout << "g: " << temp->g.getlength() << "\t Drag: " << temp->drag.getlength() << "\t Engines: " << (temp->accVehicle * temp->throttle) << "\n";
-    std::cout << "Fuel: " << ((temp->vehMass - temp->dryMass) / temp->initialMass) * 100.0 << " %\n";
+    std::cout << "Fuel: " << ((temp->vehMass - temp->dryMass) / (temp->initialMass- temp->dryMass)) * 100.0 << " %\n";
     std::cout << "Throttle: " << temp->throttle * 100.0f << " %\n";
     std::cout << "Active Engines: " << temp->ctEngines << "\n";
     std::cout << "\n";
@@ -71,7 +71,7 @@ void printVals(struct vals *temp)
 
 void init(struct vals *temp)
 {
-    #ifndef testing
+    #ifdef logging
     logfile.write(createHeader().c_str(), createHeader().length());
     #endif
     temp->gravConst = 6.6743 * pow(10, -11);
@@ -115,39 +115,62 @@ void doStep(struct vals *temp)
     if(temp->ctEngines > 9)
         temp->ctEngines = 9;
 
-    temp->pressure = temp->SeaLvlpressure * pow(1.0 - ((0.0065 * temp->alt) / (15.0+0.0065*temp->alt+273.15)),5.257); 
-
-    temp->density = temp->pressure / (287.058 * 293.15); //Gaskonstante und 20°C
-    if(temp->alt > 120000) temp->density = 0;
-
-    double absdrag = (temp->coefficient * temp->density * pow(temp->speed.getlength(), 2) * temp->area * 0.5) / temp->vehMass;
-    temp->drag = temp->speed.normalize() * -absdrag;
+    if(temp->alt > 120000)
+    {
+        temp->density = 0;
+        temp->drag = vektor(0.0, 0.0, 0.0);
+    } 
+    else
+    {
+        // if((temp->position.normalize() * temp->speed) > 0)
+        // {
+        //     temp->coefficient = 0.5;
+        // }
+        // else
+        // {
+        //     temp->coefficient = 0.82;
+        // }
+        temp->pressure = temp->SeaLvlpressure * pow(1.0 - ((0.0065 * temp->alt) / (15.0+0.0065*temp->alt+273.15)),5.257); 
+        temp->density = temp->pressure / (287.058 * 293.15); //Gaskonstante und 20°C
+        double absdrag = (temp->coefficient * temp->density * pow(temp->speed.getlength(), 2) * temp->area * 0.5) / temp->vehMass;
+        temp->drag = temp->speed.normalize() * -absdrag;
+    }
 
     temp->vehThrust = temp->engThrust * temp->ctEngines;
     temp->accVehicle = (temp->vehThrust / temp->vehMass);
 
-    double forceToEarth = temp->gravConst * ((temp->earthMass*temp->vehMass) / ((temp->earthRadius+temp->alt) * (temp->earthRadius+temp->alt)));
-    double accelerationToEarth = forceToEarth / temp->vehMass;
-    temp->g = (temp->position.normalize()) * -accelerationToEarth;
+
+    if(temp->alt <= 0)
+    {
+        temp->g = vektor(0.0, 0.0, 0.0);
+    }
+    else
+    {
+        double forceToEarth = temp->gravConst * ((temp->earthMass*temp->vehMass) / ((temp->earthRadius+temp->alt) * (temp->earthRadius+temp->alt)));
+        double accelerationToEarth = forceToEarth / temp->vehMass;
+        temp->g = (temp->position.normalize()) * -accelerationToEarth;
+    }
 
     vektor currentAcceleration = (temp->g + (temp->accVehicle * temp->throttle) * temp->orientation.normalize() + temp->drag) * temp->stepsize;
     temp->speed = temp->speed + currentAcceleration;
 
     temp->position = temp->position + (temp->speed * temp->stepsize);
     temp->alt = temp->position.getlength() - temp->earthRadius;
+
     if(temp->ctEngines > 0)
         temp->fuelConsumption = 1451.0f / temp->ctEngines;
     else
         temp->fuelConsumption = 0;
+
     temp->vehMass = temp->vehMass - (temp->fuelConsumption * temp->throttle * temp->ctEngines * temp->stepsize);
-    #ifndef testing
+    #ifdef logging
         logfile << logValsToCsv(temp);
     #endif
 }
 
 void lastStep()
 {
-#ifndef testing
+#ifdef logging
     logfile.close();
 #endif
 }

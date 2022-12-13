@@ -127,7 +127,7 @@ void executeFlightPath(double valToVariate)
         sem_wait(&sem2);
 #endif
 #endif
-        double desiredAngle = 90.0*(exp(currentValues->alt / 120000.0) - 1);
+        double desiredAngle = 90.0*(exp(currentValues->alt / 110000.0) - 1);
         if(desiredAngle > 90.0) desiredAngle = 90.0;
         else if(desiredAngle < 0.0) desiredAngle = 0.0;
         currentValues->orientation = vektor(sin(deg2rad(desiredAngle)), cos(deg2rad(desiredAngle)), 0);
@@ -140,7 +140,7 @@ void executeFlightPath(double valToVariate)
     currentValues->ctEngines = 3;
     while (currentValues->alt > 0)
     {
-        if(currentValues->alt < 60000 && currentValues->alt < INFINITY)
+        if(currentValues->alt < 100000 && currentValues->alt < INFINITY)
         {
             autoland(currentValues);
         }
@@ -173,7 +173,7 @@ void startGUIThreads()
     const uint16_t threads = 1;
 #endif
     std::thread tmp[threads];
-    tmp[0] = std::thread(executeFlightPath, 2964.0);
+    tmp[0] = std::thread(executeFlightPath, 4000.0);
 #ifndef asFastAsPossible
     tmp[1] = std::thread(output);
     tmp[2] = std::thread(timing);

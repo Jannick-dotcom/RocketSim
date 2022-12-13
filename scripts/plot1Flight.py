@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 
-file = open("outputs/log.csv")
+file = open("/home/jannick/Desktop/outputs/log.csv")
 
 matrix = []
 

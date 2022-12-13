@@ -9,7 +9,7 @@ double calculate_d_suicide(struct vals *values, uint8_t ct_engines)
     double temp_accVehicle = (values->engThrust * ct_engines) / values->vehMass;
     double temp_netAcceleration = temp_accVehicle - values->g.getlength(); //Max Possible Acceleration
     double temp_tSuicide = values->speed.getlength() / temp_netAcceleration;
-    return (temp_tSuicide * temp_tSuicide * temp_netAcceleration) / 2; // S = 1/2 * a * t²
+    return temp_tSuicide * temp_tSuicide * temp_netAcceleration * 0.5; // S = 1/2 * a * t²
 }
 
 double playBackwards(struct vals *values)
@@ -43,7 +43,7 @@ void autoland(struct vals *values)
         values->throttle = 1.0;
         values->entryBurnActive = 1;
     }
-    else if(values->entryBurnActive == 1 && values->alt < 6e4 && values->speed.getlength() < 1600)
+    else if(values->entryBurnActive == 1 && values->alt < 6e4 && values->speed.getlength() < 800)
     {
         values->throttle = 0.0;
         values->entryBurnActive = 2;
@@ -76,7 +76,7 @@ void autoland(struct vals *values)
     {
         dSuicide = calculate_d_suicide(values, values->ctEngines);
     }
-    if ((dSuicide >= values->alt && values->alt > 0 && values->alt < 10000) || values->suicideBurnActive)
+    if ((dSuicide >= values->alt && values->alt > 0 && values->entryBurnActive == 2) || values->suicideBurnActive)
     {
         values->throttle = dSuicide / values->alt;
         if(values->throttle > 1.5 && values->ctEngines < 9)

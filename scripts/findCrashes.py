@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 
-file = open("outputs/test.txt")
+file = open("/home/jannick/Desktop/outputs/test.txt")
 
 def getDuplicates(list):
     '''return all duplicates in list'''
@@ -40,7 +40,7 @@ mass = [row[3] for row in matrix]
 
 numberOfCrashes = 0
 for i in range(len(yspd)):
-    if yspd[i] > 5:
+    if yspd[i] > 1:
         numberOfCrashes += 1
         print("Crash at: " + str(x[i]) + " with speed: " + str(yspd[i]) + " and mass: " + str(mass[i]))
 

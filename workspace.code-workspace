@@ -64,7 +64,14 @@
 			"cinttypes": "cpp",
 			"condition_variable": "cpp",
 			"future": "cpp",
-			"mutex": "cpp"
+			"mutex": "cpp",
+			"bitset": "cpp",
+			"codecvt": "cpp",
+			"complex": "cpp",
+			"set": "cpp",
+			"typeindex": "cpp",
+			"variant": "cpp",
+			"*.ipp": "cpp"
 		}
 	}
 }
