@@ -8,14 +8,14 @@ ofstream logfile(OutputPath + "log.csv", ios::out);
 //create first line with elements of vals for csv file
 string createHeader()
 {
-    string header = "spd;angle;g;accVehicle;vehThrust;engThrust;ctEngines;vehMass;dryMass;radius;area;coefficient;density;SeaLvlpressure;pressure;accDrag;suicideBurnActive;entryBurnActive;fuelConsumption;throttle;alt;stepsize\n";
+    string header = "time;spd;angle;g;accVehicle;vehThrust;engThrust;ctEngines;vehMass;dryMass;radius;area;coefficient;density;SeaLvlpressure;pressure;accDrag;suicideBurnActive;entryBurnActive;fuelConsumption;throttle;throttleSet;alt;stepsize\n";
     return header;
 }
 
 //create line with values of vals for csv file
 string logValsToCsv(struct vals *temp)
 {
-    string line = to_string(temp->speed.getlength()) + ";" + to_string(temp->orientation.getx()) + ";" + to_string(temp->g.getlength()) + ";" + to_string(temp->accVehicle) + ";" + to_string(temp->vehThrust) + ";" + to_string(temp->engThrust) + ";" + to_string(temp->ctEngines) + ";" + to_string(temp->vehMass) + ";" + to_string(temp->dryMass) + ";" + to_string(temp->radius) + ";" + to_string(temp->area) + ";" + to_string(temp->coefficient) + ";" + to_string(temp->density) + ";" + to_string(temp->SeaLvlpressure) + ";" + to_string(temp->pressure) + ";" + to_string(temp->drag.getlength()) + ";" + to_string(temp->suicideBurnActive) + ";" + to_string(temp->entryBurnActive) + ";" + to_string(temp->fuelConsumption) + ";" + to_string(temp->throttle) + ";" + to_string(temp->alt) + ";" + to_string(temp->stepsize) + "\n";
+    string line = to_string(temp->timeS) + "." + to_string(temp->timeMS) + ";" + to_string(temp->speed.getlength()) + ";" + to_string(temp->orientation.getx()) + ";" + to_string(temp->g.getlength()) + ";" + to_string(temp->accVehicle) + ";" + to_string(temp->vehThrust) + ";" + to_string(temp->engThrust) + ";" + to_string(temp->ctEngines) + ";" + to_string(temp->vehMass) + ";" + to_string(temp->dryMass) + ";" + to_string(temp->radius) + ";" + to_string(temp->area) + ";" + to_string(temp->coefficient) + ";" + to_string(temp->density) + ";" + to_string(temp->SeaLvlpressure) + ";" + to_string(temp->pressure) + ";" + to_string(temp->drag.getlength()) + ";" + to_string(temp->suicideBurnActive) + ";" + to_string(temp->entryBurnActive) + ";" + to_string(temp->fuelConsumption) + ";" + to_string(temp->throttle) + ";" + to_string(temp->throttleSet) + ";" + to_string(temp->alt) + ";" + to_string(temp->stepsize) + "\n";
     return line;
 }
 
@@ -74,6 +74,8 @@ void init(struct vals *temp)
     #ifdef logging
     logfile.write(createHeader().c_str(), createHeader().length());
     #endif
+    temp->timeS = 0;
+    temp->timeMS = 0;
     temp->gravConst = 6.6743 * pow(10, -11);
     temp->coefficient = 100;
     temp->alt = 0.0f;                      //[m]
@@ -163,6 +165,13 @@ void doStep(struct vals *temp)
         temp->fuelConsumption = 0;
 
     temp->vehMass = temp->vehMass - (temp->fuelConsumption * temp->throttle * temp->ctEngines * temp->stepsize);
+    temp->timeMS += (uint16_t)(1000.0 * temp->stepsize);
+    if(temp->timeMS >= 1000)
+    {
+        temp->timeMS = temp->timeMS - 1000;
+        temp->timeS++;
+    }
+
     #ifdef logging
         logfile << logValsToCsv(temp);
     #endif

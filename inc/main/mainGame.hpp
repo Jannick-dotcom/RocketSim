@@ -15,6 +15,8 @@
 
 struct vals
 {
+    uint64_t timeS;      //[s]
+    uint16_t timeMS;     //[ms]
     vektor speed;
     vektor position;
     vektor orientation;

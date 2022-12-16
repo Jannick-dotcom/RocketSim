@@ -20,7 +20,7 @@ double playBackwards(struct vals *values)
     temp.vehMass = values->vehMass;
     temp.ctEngines = 1;
     temp.stepsize = 0.001;
-    temp.throttle = 1;
+    temp.throttleSet = 1;
     while (temp.speed.getlength() < values->speed.getlength() && temp.vehMass > temp.dryMass)
     {
         doStep(&temp);
@@ -40,12 +40,12 @@ void autoland(struct vals *values)
     values->orientation = values->speed.normalize() * -1; //Retrograde
     if(values->entryBurnActive == 0 && values->alt < 65e3 && values->speed.getlength() > 2300)
     {
-        values->throttle = 1.0;
+        values->throttleSet = 1.0;
         values->entryBurnActive = 1;
     }
     else if(values->entryBurnActive == 1 && values->alt < 6e4 && values->speed.getlength() < 800)
     {
-        values->throttle = 0.0;
+        values->throttleSet = 0.0;
         values->entryBurnActive = 2;
     }
 
@@ -78,12 +78,12 @@ void autoland(struct vals *values)
     }
     if ((dSuicide >= values->alt && values->alt > 0 && values->entryBurnActive == 2) || values->suicideBurnActive)
     {
-        values->throttle = dSuicide / values->alt;
-        if(values->throttle > 1.5 && values->ctEngines < 9)
+        values->throttleSet = dSuicide / values->alt;
+        if(values->throttleSet> 1.5 && values->ctEngines < 9)
         {
             values->ctEngines++;
         }
-        else if(values->throttle <= 0.4 && values->ctEngines > 1)
+        else if(values->throttleSet<= 0.4 && values->ctEngines > 1)
         {
             values->ctEngines--;
         }
