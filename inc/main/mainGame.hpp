@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include "vectors.hpp"
+#include "helpers.hpp"
 
 // #define testing // comment this out to disable testing mode (no graphics)
 #define multithreading
