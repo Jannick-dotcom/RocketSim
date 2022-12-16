@@ -104,7 +104,7 @@ void executeFlightPath(double valToVariate)
     notdone = true;
     #endif
     init(currentValues);
-    currentValues->throttle = 1.0;
+    currentValues->throttleSet = 1.0;
     currentValues->ctEngines = 9;
     while (currentValues->speed.getlength() < valToVariate && currentValues->vehMass > (currentValues->dryMass + 10.0))
     {
@@ -119,7 +119,7 @@ void executeFlightPath(double valToVariate)
         currentValues->orientation = vektor(sin(deg2rad(desiredAngle)), cos(deg2rad(desiredAngle)), 0);
         doStep(currentValues);
     }
-    currentValues->throttle = 0.0;
+    currentValues->throttleSet = 0.0;
     currentValues->ctEngines = 3;
     while (currentValues->alt > 0)
     {

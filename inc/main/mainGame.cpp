@@ -91,6 +91,8 @@ void init(struct vals *temp)
 
     temp->fuelConsumption = 1451.0f / temp->ctEngines; //[kg/s]
     temp->throttle = 0.0f;                                     //[%]
+    temp->throttleSet = 0.0f;                                 //[%]
+    temp->throttleResponse = 20.0f;                            //[%/s]
 
     temp->stepsize = 0.001; //[s]
 
@@ -106,10 +108,10 @@ void init(struct vals *temp)
 
 void doStep(struct vals *temp)
 {
-    if (temp->throttle > 1.0)
-        temp->throttle = 1.0;
-    else if (temp->throttle < 0.0)
-        temp->throttle = 0.0;
+    if (temp->throttleSet > 1.0)
+        temp->throttleSet = 1.0;
+    else if (temp->throttleSet < 0.0)
+        temp->throttleSet = 0.0;
 
     if (temp->vehMass <= temp->dryMass)
         temp->ctEngines = 0;
@@ -124,14 +126,14 @@ void doStep(struct vals *temp)
     } 
     else
     {
-        // if((temp->position.normalize() * temp->speed) > 0)
-        // {
-        //     temp->coefficient = 0.5;
-        // }
-        // else
-        // {
-        //     temp->coefficient = 0.82;
-        // }
+        if((temp->position.normalize() * temp->speed) > 0)
+        {
+            temp->coefficient = 50;
+        }
+        else
+        {
+            temp->coefficient = 82;
+        }
         temp->pressure = temp->SeaLvlpressure * pow(1.0 - ((0.0065 * temp->alt) / (15.0+0.0065*temp->alt+273.15)),5.257); 
         temp->density = temp->pressure / (287.058 * 293.15); //Gaskonstante und 20°C
         double absdrag = (temp->coefficient * temp->density * pow(temp->speed.getlength(), 2) * temp->area * 0.5) / temp->vehMass;
@@ -151,6 +153,15 @@ void doStep(struct vals *temp)
         double forceToEarth = temp->gravConst * ((temp->earthMass*temp->vehMass) / ((temp->earthRadius+temp->alt) * (temp->earthRadius+temp->alt)));
         double accelerationToEarth = forceToEarth / temp->vehMass;
         temp->g = (temp->position.normalize()) * -accelerationToEarth;
+    }
+
+    if(abs(temp->throttle - temp->throttleSet) > 0.01 * temp->throttleResponse * temp->stepsize)
+    {
+        temp->throttle = temp->throttle + (0.01 * temp->throttleResponse * temp->stepsize * ((temp->throttleSet - temp->throttle) >= 0 ? 1 : -1));
+    }
+    else
+    {
+        temp->throttle = temp->throttleSet;
     }
 
     vektor currentAcceleration = (temp->g + (temp->accVehicle * temp->throttle) * temp->orientation.normalize() + temp->drag) * temp->stepsize;

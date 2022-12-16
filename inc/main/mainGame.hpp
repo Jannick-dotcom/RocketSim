@@ -47,6 +47,8 @@ struct vals
     int entryBurnActive;
     double fuelConsumption; //[kg/s]
     double throttle;        //[%]
+    double throttleSet;    //[%]
+    double throttleResponse;
 
     double alt;            //[m]
     double stepsize;       //[s]
