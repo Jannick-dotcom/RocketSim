@@ -89,20 +89,6 @@ void output()
     cout << "END" << endl;
 }
 #endif
-#ifdef logging
-void debugLog(string filename, struct vals *values)
-{
-    #ifdef multithreading
-    // sem_wait(&sem1);
-    #endif
-    ofstream f(OutputPath + filename, std::ios_base::app); // open file for appending
-    f << values->speed.getlength() << endl;
-    f.close();
-    #ifdef multithreading
-    // sem_post(&sem1);
-    #endif
-}
-#endif
 
 void executeFlightPath(double valToVariate)
 {
@@ -131,9 +117,6 @@ void executeFlightPath(double valToVariate)
         if(desiredAngle > 90.0) desiredAngle = 90.0;
         else if(desiredAngle < 0.0) desiredAngle = 0.0;
         currentValues->orientation = vektor(sin(deg2rad(desiredAngle)), cos(deg2rad(desiredAngle)), 0);
-        #ifdef logging
-        debugLog(to_string(int(valToVariate)) + ".csv", currentValues);
-        #endif
         doStep(currentValues);
     }
     currentValues->throttle = 0.0;
@@ -149,9 +132,6 @@ void executeFlightPath(double valToVariate)
         sem_wait(&sem2);
 #endif
 #endif
-        #ifdef logging
-        debugLog(to_string(int(valToVariate)) + ".csv", currentValues);
-        #endif
         doStep(currentValues);
     }
     lastStep();
@@ -194,7 +174,7 @@ void startGUIThreads()
 void startNoGUIThreads()
 {
     sem_post(&sem1);
-    boost::asio::thread_pool pool(std::thread::hardware_concurrency()-1);
+    boost::asio::thread_pool pool(std::thread::hardware_concurrency());
     // Submit a function to the pool.
 
     for(uint32_t i = 0; i < 100000; i++)
