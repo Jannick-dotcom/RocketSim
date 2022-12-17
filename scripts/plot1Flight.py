@@ -1,38 +1,44 @@
+#!/usr/bin/python
+
 import matplotlib.pyplot as plt
-import numpy as np
-import time
+import multiprocessing as mp
 
-file = open("/home/jannick/Desktop/outputs/log.csv")
+file = open("outputs/log.csv", "r")
 
-matrix = []
-
-for line in file:
-    matrix.append([x for x in line.split(";")])
-
-yalt = []
-spd = []
-mass = []
-angle = []
-for i in matrix[1:]:
-    try:
-        angle.append(float(i[1]))
-        spd.append(float(i[0]))
-        yalt.append(float(i[20]))
-        mass.append(float(i[7]))
-    except:
-        pass
+class parameter:
+    def __init__(self, name, index):
+        self.name = name
+        self.index = index
+        self.values = []
 
 
-plt.figure("landing_altitude")
-plt.plot(yalt, label="alt")
-plt.legend()
-plt.figure("landing_speed")
-plt.plot(spd, label="spd")
-plt.legend()
-plt.figure("landing_mass")
-plt.plot(mass, label="mass")
-plt.legend()
-# plt.figure("landing_angle")
-# plt.plot(angle, label="angle")
-# plt.legend()
-plt.show()
+lop = []
+for i, line in enumerate(file):
+    if i == 0:
+        params = line.strip().split(";")
+        for p, param in enumerate(params):
+            lop.append(parameter(param, p))
+
+    else:
+        values = line.strip().split(";")
+        for p, param in enumerate(lop):
+            param.values.append(values[param.index])
+
+file.close()
+
+
+def savePlot(que: mp.Queue):
+    plot = que.get(True, 10)
+    plt.figure(plot.name)
+    plt.plot(plot.values, label=plot.name)
+    plt.savefig(f"outputs/images/{plot.name}.png")
+    plt.close(plot.name)
+    print(f"Saved {plot.name}")
+
+x = []
+for i in lop:
+    q = mp.Queue()
+    el = mp.Process(target=savePlot, args=(q,))
+    q.put(i)
+    el.start()
+    x.append(el)
