@@ -1,8 +1,7 @@
 #!/usr/bin/python
 
 import matplotlib.pyplot as plt
-import multiprocessing as mp
-
+import numpy as np
 file = open("outputs/log.csv", "r")
 
 class parameter:
@@ -27,18 +26,11 @@ for i, line in enumerate(file):
 file.close()
 
 
-def savePlot(que: mp.Queue):
-    plot = que.get(True, 10)
+def savePlot(plot):
     plt.figure(plot.name)
-    plt.plot(plot.values, label=plot.name)
-    plt.savefig(f"outputs/images/{plot.name}.png")
-    plt.close(plot.name)
+    plt.plot(plot.values)
+    plt.savefig(f"outputs/{plot.name}.png", dpi=100)
     print(f"Saved {plot.name}")
 
-x = []
 for i in lop:
-    q = mp.Queue()
-    el = mp.Process(target=savePlot, args=(q,))
-    q.put(i)
-    el.start()
-    x.append(el)
+    savePlot(i)
