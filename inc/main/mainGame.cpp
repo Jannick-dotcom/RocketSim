@@ -68,6 +68,7 @@ void printVals(struct vals *temp)
     std::cout << "total Acceleration: " << ((temp->accVehicle * temp->throttle * temp->orientation.normalize()) + temp->drag + temp->g).getlength() << " m/s²\n";
     std::cout << "g: " << temp->g.getlength() << "\t Drag: " << temp->drag.getlength() << "\t Engines: " << (temp->accVehicle * temp->throttle) << "\n";
     std::cout << "Fuel: " << ((temp->vehMass - temp->dryMass) / (temp->initialMass- temp->dryMass)) * 100.0 << " %\n";
+    std::cout << "Fuel for " << (temp->vehMass - temp->dryMass) / (temp->fuelConsumption * temp->ctEngines * temp->throttle) << " s\n";
     std::cout << "Throttle: " << temp->throttle * 100.0f << " %\n";
     std::cout << "Active Engines: " << temp->ctEngines << "\n";
     std::cout << "\n";
