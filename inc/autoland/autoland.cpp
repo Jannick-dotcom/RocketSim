@@ -12,22 +12,6 @@ double calculate_d_suicide(struct vals *values, uint8_t ct_engines)
     return temp_tSuicide * temp_tSuicide * temp_netAcceleration * 0.5; // S = 1/2 * a * t²
 }
 
-double playBackwards(struct vals *values)
-{
-    struct vals temp;
-    init(&temp);
-    temp.dryMass = values->dryMass;
-    temp.vehMass = values->vehMass;
-    temp.ctEngines = 1;
-    temp.stepsize = 0.001;
-    temp.throttleSet = 1;
-    while (temp.speed.getlength() < values->speed.getlength() && temp.vehMass > temp.dryMass)
-    {
-        doStep(&temp);
-    }
-    return temp.alt;
-}
-
 void autoland(struct vals *values)
 {
     double verticalSpeed = values->speed * values->position.normalize();
