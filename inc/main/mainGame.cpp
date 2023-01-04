@@ -151,9 +151,10 @@ void doStep(struct vals *temp)
     temp->accVehicle = (temp->vehThrust / temp->vehMass);
 
 
-    if(temp->alt <= 0)
+    if(temp->alt < 0)
     {
-        temp->g = vektor(0.0, 0.0, 0.0);
+        temp->position = temp->position.normalize() * temp->earthRadius;
+        temp->speed = vektor(0.0, 0.0, 0.0);
     }
     else
     {
