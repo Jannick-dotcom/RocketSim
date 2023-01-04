@@ -163,9 +163,9 @@ void doStep(struct vals *temp)
         temp->g = (temp->position.normalize()) * -accelerationToEarth;
     }
 
-    if(abs(temp->throttle - temp->throttleSet) > 0.01 * temp->throttleResponse * temp->stepsize)
+    if(abs(temp->throttle - temp->throttleSet) > temp->throttleResponse * temp->stepsize / 100.0)
     {
-        temp->throttle = temp->throttle + (0.01 * temp->throttleResponse * temp->stepsize * ((temp->throttleSet - temp->throttle) >= 0 ? 1 : -1));
+        temp->throttle = temp->throttle + (temp->throttleResponse / 100.0 * temp->stepsize * ((temp->throttleSet - temp->throttle) >= 0 ? 1 : -1));
     }
     else
     {
