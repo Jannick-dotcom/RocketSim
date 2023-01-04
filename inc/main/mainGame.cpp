@@ -21,18 +21,25 @@ string logValsToCsv(struct vals *temp)
 
 void printRocket(struct vals *temp)
 {
-    cout << "/ \\\n"
-         << "|S|\n"
-         << "|P|\n" 
-         << "|A|\n" 
-         << "|C|\n" 
-         << "|E|\n" 
-         << "|J|\n" 
-         << "|_|\n" 
-         << "|^|\n";
+    cout << "  ^\n"
+         << " / \\\n"
+         << "/   \\\n"
+         << "| S |\n"
+         << "| P |\n" 
+         << "| A |\n" 
+         << "| C |\n" 
+         << "| E |\n" 
+         << "| J |\n" 
+         << "| _ |\n" 
+         << "| ^ |\n";
 
     if (temp->throttle > 0 && temp->alt > 0.5)
-        cout << " *\n";
+    {
+        for (uint8_t i = 0; i < (int)(temp->throttle * 10); i++)
+        {
+            cout << " ***\n";
+        }
+    }
 }
 
 void printGround(struct vals *temp)
