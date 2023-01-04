@@ -10,8 +10,8 @@
 
 // #define testing // comment this out to disable testing mode (no graphics)
 #define multithreading
-// #define logging
-// #define asFastAsPossible // comment this out to disable asFastAsPossible mode (no sleep)
+#define logging
+#define asFastAsPossible // comment this out to disable asFastAsPossible mode (no sleep)
 
 struct vals
 {
@@ -22,24 +22,24 @@ struct vals
     vektor orientation;
 
     vektor g;           //[m/s²]
-    double earthMass;   //[kg]
-    double earthRadius; //[m]
-    double gravConst;
+    const double earthMass;   //[kg]
+    const double earthRadius; //[m]
+    const double gravConst; 
 
     double accVehicle; //[m/s²]
     double vehThrust;  //[N]
-    double engThrust;  //[N]
+    const double engThrust;  //[N]
     int ctEngines;
 
-    double initialMass;
+    double initialMass; //[kg]
     double vehMass;                 //[kg]
-    double dryMass;                 //[kg]
+    const double dryMass;                 //[kg]
 
     double radius;                  //[m] of rocket
     double area;                    //[m²]
     double coefficient; //????????
     double density;
-    double SeaLvlpressure;
+    const double SeaLvlpressure;
     double pressure;
     vektor drag;
 
@@ -48,10 +48,20 @@ struct vals
     double fuelConsumption; //[kg/s]
     double throttle;        //[%]
     double throttleSet;    //[%]
-    double throttleResponse;
+    const double throttleResponse;
 
     double alt;            //[m]
-    double stepsize;       //[s]
+    const double stepsize;       //[s]
+    vals() :
+        earthMass(5.972 * pow(10, 24)), //[kg]
+        earthRadius(6371000.0),         //[m]
+        gravConst(6.6743 * pow(10, -11)),
+        engThrust(1000000.0), //[N]
+        dryMass(20000.0f),    //[kg]
+        SeaLvlpressure(1013.0), //[hPa]
+        throttleResponse(80.0f), //[%/s]
+        stepsize(0.001) //[s]
+    {};
 };
 
 void printVals(struct vals *temp);

@@ -84,15 +84,15 @@ void init(struct vals *temp)
     #endif
     temp->timeS = 0;
     temp->timeMS = 0;
-    temp->gravConst = 6.6743 * pow(10, -11);
+    // temp->gravConst = 6.6743 * pow(10, -11);
     temp->coefficient = 100;
     temp->alt = 0.0f;                      //[m]
-    temp->earthMass = 5.972 * pow(10, 24); //[kg]
-    temp->earthRadius = 6371000.0;
+    // temp->earthMass = 5.972 * pow(10, 24); //[kg]
+    // temp->earthRadius = 6371000.0;
     temp->accVehicle = 0.0f;                                                                //[m/s²]
     temp->vehMass = temp->initialMass = 267000; //[kg]
-    temp->dryMass = 20000.0f;
-    temp->engThrust = 1000000.0f;
+    // temp->dryMass = 20000.0f;
+    // temp->engThrust = 1000000.0f;
     temp->ctEngines = 9;
     temp->vehThrust = temp->engThrust * temp->ctEngines; //[N]
     temp->orientation = vektor(0.0f, 1.0f, 0.0f);
@@ -100,14 +100,14 @@ void init(struct vals *temp)
     temp->fuelConsumption = 1451.0f / temp->ctEngines; //[kg/s]
     temp->throttle = 0.0f;                                     //[%]
     temp->throttleSet = 0.0f;                                 //[%]
-    temp->throttleResponse = 20.0f;                            //[%/s]
+    // temp->throttleResponse = 80.0f;                            //[%/s]
 
-    temp->stepsize = 0.001; //[s]
+    // temp->stepsize = 0.001; //[s]
 
     temp->radius = 12.0;
     temp->area = M_1_PI * pow(temp->radius, 2);
     temp->density = 0;
-    temp->SeaLvlpressure = 1013.0;
+    // temp->SeaLvlpressure = 1013.0;
     temp->suicideBurnActive = 0;
     temp->entryBurnActive = 0;
 
