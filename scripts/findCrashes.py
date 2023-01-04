@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 
-file = open("/home/jannick/Desktop/outputs/test.txt")
+file = open("outputs/test.txt")
 
 def getDuplicates(list):
     '''return all duplicates in list'''

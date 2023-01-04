@@ -1,7 +1,7 @@
 import os
 import matplotlib.pyplot as plt
 
-directory = "/home/jannick/Desktop/outputs"
+directory = "outputs"
 
 def plot(liste):
     plt.figure("speed")
