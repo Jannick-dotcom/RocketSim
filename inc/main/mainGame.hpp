@@ -10,7 +10,7 @@
 
 // #define testing // comment this out to disable testing mode (no graphics)
 #define multithreading
-#define logging
+// #define logging
 #define asFastAsPossible // comment this out to disable asFastAsPossible mode (no sleep)
 
 struct vals
