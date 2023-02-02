@@ -60,7 +60,7 @@ struct vals
         dryMass(20000.0f),    //[kg]
         SeaLvlpressure(1013.0), //[hPa]
         throttleResponse(80.0f), //[%/s]
-        stepsize(0.001) //[s]
+        stepsize(0.01) //[s]
     {};
 };
 
