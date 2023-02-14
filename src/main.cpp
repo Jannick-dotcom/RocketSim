@@ -11,54 +11,73 @@
 #include "vectors.hpp"
 #include "autoland.hpp"
 
+struct vals *tempOut; // tempOut is a pointer to a struct of type vals
 static int semid1, semid2; // semaphore ids
-sem_t sem1; // semaphore for mainGame
-sem_t sem2; // semaphore for mainGame
+sem_t semOut; // semaphore for output
+sem_t semPhys; // semaphore for physics
+#ifdef testing
+sem_t semFile; // semaphore for file writing
+#endif
 
 volatile bool notdone = true; 
 
-
 using namespace std; 
-#ifdef testing
 
+#ifdef testing
 void writeToFile(struct vals *values, double val)
 {
     #ifdef multithreading
-    sem_wait(&sem1);
+    sem_wait(&semFile);
     #endif
     ofstream f(OutputPath + "test.txt", std::ios_base::app); // open file for writing
     f << setprecision(10) << val << ", " << values->alt << ", " << values->speed.getlength() << ", " << ((values->vehMass - values->dryMass) / values->initialMass)*100.0 << endl;
     f.close();
     #ifdef multithreading
-    sem_post(&sem1);
+    sem_post(&semFile);
     #endif
 }
 #else
-struct vals *tempOut; // tempOut is a pointer to a struct of type vals
+
+//return the difference in microseconds between two timevals
+uint32_t timeDifference(struct timeval t1, struct timeval t2)
+{
+    return abs((t2.tv_sec - t1.tv_sec) * 1000000 + (t2.tv_usec - t1.tv_usec));
+}
+
 void timing()
 {
-    uint16_t refreshOut = 20;
+    struct timeval curr;
+    uint16_t refreshOut = 10;
     uint16_t refreshCalc = 1000;
-    uint8_t timeWarp = 10;
-    uint64_t counterOut = 0;
-    uint64_t counterUpdate = 0;
+    uint8_t timeWarp = 1;
+    struct timeval lastOut;
+    struct timeval lastPhysics;
     while (notdone)
     {
-        if (counterOut >= (10000.0 / (refreshOut)))
+        gettimeofday(&curr, NULL);
+        if (timeDifference(lastOut, curr) >= 1e6 / refreshOut)
         {
-            sem_post(&sem1);
-            counterOut = 0;
+            sem_post(&semOut);
+            lastOut = curr;
         }
-        if (counterUpdate >= (10000.0 / (refreshCalc * timeWarp)))
+            
+        if (timeDifference(lastPhysics, curr) >= 1e6 / (refreshCalc * timeWarp))
         {
-            sem_post(&sem2);
-            counterUpdate = 0;
+            sem_post(&semPhys);
+            lastPhysics = curr;
         }
-        usleep(100);
-        counterOut++;
-        counterUpdate++;
+
+        if(tempOut != nullptr && tempOut->alt < 500.0)
+        {
+            timeWarp = 1;
+        }
+        else
+        {
+            timeWarp = 20;
+        }
+        usleep(10);
     }
-    sem_post(&sem1);
+    sem_post(&semOut);
 }
 
 void output()
@@ -71,7 +90,7 @@ void output()
             printVals(tempOut);
         }
 #ifndef asFastAsPossible
-        sem_wait(&sem1);
+        sem_wait(&semOut);
 #endif
     }
     cout << "END" << endl;
@@ -98,17 +117,17 @@ void executeFlightPath(double valToVariate)
     {
 #ifndef testing
 #ifndef asFastAsPossible
-        sem_wait(&sem2);
+        sem_wait(&semPhys);
 #endif
 #endif
-        double desiredAngle = 90.0*(exp(currentValues->alt / 110000.0) - 1);
+        double desiredAngle = 90.0*(exp(currentValues->alt / 100000.0) - 1);
         if(desiredAngle > 90.0) desiredAngle = 90.0;
         else if(desiredAngle < 0.0) desiredAngle = 0.0;
         currentValues->orientation = vektor(sin(deg2rad(desiredAngle)), cos(deg2rad(desiredAngle)), 0);
         doStep(currentValues);
     }
     currentValues->throttleSet = 0.0;
-    currentValues->ctEngines = 3;
+    currentValues->ctEngines = 1;
     while (currentValues->alt > 0)
     {
         if(currentValues->alt < 100000 && currentValues->alt < INFINITY)
@@ -117,11 +136,12 @@ void executeFlightPath(double valToVariate)
         }
 #ifndef testing
 #ifndef asFastAsPossible
-        sem_wait(&sem2);
+        sem_wait(&semPhys);
 #endif
 #endif
         doStep(currentValues);
     }
+    currentValues->throttleSet = 0.0;
     lastStep();
 #ifdef testing
     writeToFile(currentValues, valToVariate);
@@ -132,36 +152,23 @@ void executeFlightPath(double valToVariate)
 #endif
 }
 
-#ifndef testing
 void startGUIThreads()
 {
 #ifndef asFastAsPossible
-    const uint16_t threads = 3; //10
+    boost::asio::thread_pool pool(3);
+    boost::asio::post(pool, boost::bind(output));
+    boost::asio::post(pool, boost::bind(timing));
 #else
-    const uint16_t threads = 1;
+    boost::asio::thread_pool pool(1);
 #endif
-    std::thread tmp[threads];
-    tmp[0] = std::thread(executeFlightPath, 4000.0);
-#ifndef asFastAsPossible
-    tmp[1] = std::thread(output);
-    tmp[2] = std::thread(timing);
-#endif
-    pthread_setname_np(tmp[0].native_handle(), "calc");
-#ifndef asFastAsPossible
-    pthread_setname_np(tmp[1].native_handle(), "out");
-    pthread_setname_np(tmp[2].native_handle(), "timing");
-#endif
-    tmp[0].join();
-#ifndef asFastAsPossible
-    tmp[1].join();
-    tmp[2].join();
-#endif
+
+    boost::asio::post(pool, boost::bind(executeFlightPath, double(2000)));
+
+    pool.join();
 }
 
-#else
 void startNoGUIThreads()
 {
-    sem_post(&sem1);
     boost::asio::thread_pool pool(std::thread::hardware_concurrency());
     // Submit a function to the pool.
 
@@ -171,13 +178,13 @@ void startNoGUIThreads()
     }
     pool.join();
 }
-#endif
 
 int main()
 {
-    sem_init(&sem1, 0, 0);
-    sem_init(&sem2, 0, 0);
+    sem_init(&semOut, 0, 0);
+    sem_init(&semPhys, 0, 0);
 #ifdef testing
+    sem_init(&semFile, 0, 1);
     remove((OutputPath + "test.txt").c_str());
     startNoGUIThreads();
 #else
@@ -185,8 +192,5 @@ int main()
 #endif
     semctl(semid1, 0, IPC_RMID, 0);
     semctl(semid2, 0, IPC_RMID, 0);
-    #ifndef testing
-    // logfile.close();
-    #endif
     return 0;
 }
