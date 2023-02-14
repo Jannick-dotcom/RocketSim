@@ -11,7 +11,7 @@
 // #define testing // comment this out to disable testing mode (no graphics)
 #define multithreading
 // #define logging
-#define asFastAsPossible // comment this out to disable asFastAsPossible mode (no sleep)
+// #define asFastAsPossible // comment this out to disable asFastAsPossible mode (no sleep)
 
 struct vals
 {
@@ -60,7 +60,7 @@ struct vals
         dryMass(20000.0f),    //[kg]
         SeaLvlpressure(1013.0), //[hPa]
         throttleResponse(80.0f), //[%/s]
-        stepsize(0.01) //[s]
+        stepsize(0.001) //[s]
     {};
 };
 
