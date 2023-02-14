@@ -97,7 +97,8 @@ void init(struct vals *temp)
     temp->vehThrust = temp->engThrust * temp->ctEngines; //[N]
     temp->orientation = vektor(0.0f, 1.0f, 0.0f);
 
-    temp->fuelConsumption = 1451.0f / temp->ctEngines; //[kg/s]
+    temp->fuelConsumption = 161.0f; //[kg/s] per engine
+    temp->exhaustVelocity = 4500.0f;  //[m/s]
     temp->throttle = 0.0f;                                     //[%]
     temp->throttleSet = 0.0f;                                 //[%]
     // temp->throttleResponse = 80.0f;                            //[%/s]
@@ -148,6 +149,7 @@ void doStep(struct vals *temp)
         temp->drag = temp->speed.normalize() * -absdrag;
     }
 
+    temp->engThrust = temp->fuelConsumption * temp->exhaustVelocity;
     temp->vehThrust = temp->engThrust * temp->ctEngines;
     temp->accVehicle = (temp->vehThrust / temp->vehMass);
 
@@ -173,16 +175,11 @@ void doStep(struct vals *temp)
         temp->throttle = temp->throttleSet;
     }
 
-    vektor currentAcceleration = (temp->g + (temp->accVehicle * temp->throttle) * temp->orientation.normalize() + temp->drag) * temp->stepsize;
-    temp->speed = temp->speed + currentAcceleration;
+    vektor currentAcceleration = (temp->g + (temp->accVehicle * temp->throttle) * temp->orientation.normalize() + temp->drag);
+    temp->speed = temp->speed + currentAcceleration * temp->stepsize;
 
     temp->position = temp->position + (temp->speed * temp->stepsize);
     temp->alt = temp->position.getlength() - temp->earthRadius;
-
-    if(temp->ctEngines > 0)
-        temp->fuelConsumption = 1451.0f / temp->ctEngines;
-    else
-        temp->fuelConsumption = 0;
 
     temp->vehMass = temp->vehMass - (temp->fuelConsumption * temp->throttle * temp->ctEngines * temp->stepsize);
     temp->timeMS += (uint16_t)(1000.0 * temp->stepsize);

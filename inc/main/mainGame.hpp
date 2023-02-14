@@ -28,7 +28,7 @@ struct vals
 
     double accVehicle; //[m/s²]
     double vehThrust;  //[N]
-    const double engThrust;  //[N]
+    double engThrust;  //[N]
     int ctEngines;
 
     double initialMass; //[kg]
@@ -46,6 +46,7 @@ struct vals
     int suicideBurnActive;
     int entryBurnActive;
     double fuelConsumption; //[kg/s]
+    double exhaustVelocity; //[m/s]
     double throttle;        //[%]
     double throttleSet;    //[%]
     const double throttleResponse;
@@ -56,7 +57,6 @@ struct vals
         earthMass(5.972 * pow(10, 24)), //[kg]
         earthRadius(6371000.0),         //[m]
         gravConst(6.6743 * pow(10, -11)),
-        engThrust(1000000.0), //[N]
         dryMass(20000.0f),    //[kg]
         SeaLvlpressure(1013.0), //[hPa]
         throttleResponse(80.0f), //[%/s]
