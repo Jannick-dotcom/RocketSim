@@ -22,15 +22,19 @@ void autoland(struct vals *values)
     //Entry Burn
     double dSuicide = 0.0;
     values->orientation = values->speed.normalize() * -1; //Retrograde
-    if(values->entryBurnActive == 0 && values->alt < 65e3 && values->speed.getlength() > 2300)
+    if(values->entryBurnActive == 0 && values->alt < 65e3 && values->speed.getlength() > 1000) //if rocket is too fast and below 65km
     {
         values->throttleSet = 1.0;
         values->entryBurnActive = 1;
     }
-    else if(values->entryBurnActive == 1 && values->alt < 6e4 && values->speed.getlength() < 800)
+    else if(values->entryBurnActive == 1 && values->alt < 65e3 && values->speed.getlength() < 800) //if rocket is slow enough and below 65km
     {
         values->throttleSet = 0.0;
         values->entryBurnActive = 2;
+    }
+    else if(values->entryBurnActive == 0 && values->alt < 50e3) //if no entry burn was done until 30km height
+    {
+        values->entryBurnActive = 2; //skip entry burn
     }
 
     //Suicide Burn
