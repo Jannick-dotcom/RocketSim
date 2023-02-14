@@ -26,15 +26,11 @@ using namespace std;
 #ifdef testing
 void writeToFile(struct vals *values, double val)
 {
-    #ifdef multithreading
     sem_wait(&semFile);
-    #endif
     ofstream f(OutputPath + "test.txt", std::ios_base::app); // open file for writing
     f << setprecision(10) << val << ", " << values->alt << ", " << values->speed.getlength() << ", " << ((values->vehMass - values->dryMass) / values->initialMass)*100.0 << endl;
     f.close();
-    #ifdef multithreading
     sem_post(&semFile);
-    #endif
 }
 #else
 
@@ -116,9 +112,7 @@ void executeFlightPath(double valToVariate)
     while (currentValues->speed.getlength() < valToVariate && currentValues->vehMass > (currentValues->dryMass + 10.0))
     {
 #ifndef testing
-#ifndef asFastAsPossible
         sem_wait(&semPhys);
-#endif
 #endif
         double desiredAngle = 90.0*(exp(currentValues->alt / 100000.0) - 1);
         if(desiredAngle > 90.0) desiredAngle = 90.0;
@@ -135,9 +129,7 @@ void executeFlightPath(double valToVariate)
             autoland(currentValues);
         }
 #ifndef testing
-#ifndef asFastAsPossible
         sem_wait(&semPhys);
-#endif
 #endif
         doStep(currentValues);
     }
@@ -154,7 +146,7 @@ void executeFlightPath(double valToVariate)
 
 void startGUIThreads()
 {
-#ifndef asFastAsPossible
+#ifndef testing
     boost::asio::thread_pool pool(3);
     boost::asio::post(pool, boost::bind(output));
     boost::asio::post(pool, boost::bind(timing));
