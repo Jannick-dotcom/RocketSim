@@ -15,7 +15,24 @@ string createHeader()
 //create line with values of vals for csv file
 string logValsToCsv(struct vals *temp)
 {
-    string line = to_string(temp->timeS + (temp->timeMS / 1000.0)) + ";" + to_string(temp->speed.getlength()) + ";" + to_string(temp->orientation.getx()) + ";" + to_string(temp->g.getlength()) + ";" + to_string(temp->accVehicle) + ";" + to_string(temp->engThrust) + ";" + to_string(temp->ctEngines) + ";" + to_string(temp->vehMass) + ";" + to_string(temp->coefficient) + ";" + to_string(temp->density) + ";" + to_string(temp->pressure) + ";" + to_string(temp->drag.getlength()) + ";" + to_string(temp->suicideBurnActive) + ";" + to_string(temp->entryBurnActive) + ";" + to_string(temp->throttle) + ";" + to_string(temp->throttleSet) + ";" + to_string(temp->alt) + "\n";
+    string line = 
+    to_string(temp->timeS + (temp->timeMS / 1000.0)) + ";" + 
+    to_string(temp->speed.getlength()) + ";" + 
+    to_string(temp->orientation.getx()) + ";" + 
+    to_string(temp->g.getlength()) + ";" + 
+    to_string(temp->accVehicle) + ";" + 
+    to_string(temp->engThrust) + ";" + 
+    to_string(temp->ctEngines) + ";" + 
+    to_string(temp->vehMass) + ";" + 
+    to_string(temp->coefficient) + ";" + 
+    to_string(temp->density) + ";" + 
+    to_string(temp->pressure) + ";" + 
+    to_string(temp->drag.getlength()) + ";" + 
+    to_string(temp->suicideBurnActive) + ";" + 
+    to_string(temp->entryBurnActive) + ";" + 
+    to_string(temp->throttle) + ";" + 
+    to_string(temp->throttleSet) + ";" + 
+    to_string(temp->alt) + "\n";
     return line;
 }
 
@@ -35,7 +52,7 @@ void printRocket(struct vals *temp)
 
     if (temp->throttle > 0 && temp->alt > 0.5)
     {
-        for (uint8_t i = 0; i < (int)(temp->throttle * 10); i++)
+        for (uint8_t i = 0; i < (int)(temp->throttle * 5); i++)
         {
             cout << " ***\n";
         }
