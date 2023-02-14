@@ -1,27 +1,15 @@
 #include <iostream>
 #include <fstream>
-#include <unistd.h>
 #include <math.h>
-#include <thread>
-#include <pthread.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/ipc.h>
 #include <sys/sem.h>
 #include <semaphore.h>
-#include <iostream>
-#include <sys/stat.h>
-#include <atomic>   
+#include <boost/asio.hpp>
+#include <boost/thread.hpp>
 
 #include "mainGame.hpp"
 #include "helpers.hpp"
 #include "vectors.hpp"
 #include "autoland.hpp"
-#include <memory>
-#include <boost/asio.hpp>
-#include <boost/thread.hpp>
 
 static int semid1, semid2; // semaphore ids
 sem_t sem1; // semaphore for mainGame
