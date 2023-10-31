@@ -27,7 +27,7 @@ struct vals
     double accVehicle; //[m/s²]
     double vehThrust;  //[N]
     double engThrust;  //[N]
-    int ctEngines;
+    uint8_t ctEngines;
 
     double initialMass; //[kg]
     double vehMass;                 //[kg]

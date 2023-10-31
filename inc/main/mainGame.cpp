@@ -16,7 +16,7 @@ string createHeader()
 string logValsToCsv(struct vals *temp)
 {
     string line = 
-    to_string(temp->timeS + (temp->timeMS / 1000.0)) + ";" + 
+    to_string(double(temp->timeS) + (temp->timeMS / 1000.0)) + ";" + 
     to_string(temp->speed.getlength()) + ";" + 
     to_string(temp->orientation.getx()) + ";" + 
     to_string(temp->g.getlength()) + ";" + 
@@ -87,7 +87,7 @@ void printVals(struct vals *temp)
     std::cout << "Fuel: " << ((temp->vehMass - temp->dryMass) / (temp->initialMass- temp->dryMass)) * 100.0 << " %\n";
     std::cout << "Fuel for " << (temp->vehMass - temp->dryMass) / (temp->fuelConsumption * temp->ctEngines * temp->throttle) << " s\n";
     std::cout << "Throttle: " << temp->throttle * 100.0f << " %\n";
-    std::cout << "Active Engines: " << temp->ctEngines << "\n";
+    std::cout << "Active Engines: " << (int)temp->ctEngines << "\n";
     std::cout << "\n";
     printRocket(temp);
     printGround(temp);
@@ -199,10 +199,10 @@ void doStep(struct vals *temp)
     temp->alt = temp->position.getlength() - temp->earthRadius;
 
     temp->vehMass = temp->vehMass - (temp->fuelConsumption * temp->throttle * temp->ctEngines * temp->stepsize);
-    temp->timeMS += (uint16_t)(1000.0 * temp->stepsize);
+    temp->timeMS = uint16_t(temp->timeMS + (1000.0 * temp->stepsize));
     if(temp->timeMS >= 1000)
     {
-        temp->timeMS = temp->timeMS - 1000;
+        temp->timeMS = uint16_t(temp->timeMS - uint16_t(1000U));
         temp->timeS++;
     }
 
