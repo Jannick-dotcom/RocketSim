@@ -3,7 +3,6 @@
 using namespace std;
 #ifdef logging
 ofstream logfile(OutputPath + "log.csv", ios::out);
-#endif
 
 //create first line with elements of vals for csv file
 string createHeader()
@@ -35,6 +34,7 @@ string logValsToCsv(struct vals *temp)
     to_string(temp->alt) + "\n";
     return line;
 }
+#endif
 
 void printRocket(struct vals *temp)
 {
