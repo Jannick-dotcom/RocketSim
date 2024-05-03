@@ -105,6 +105,11 @@ double vektor::getlength()
     return sqrt(this->x * this->x + this->y * this->y + this->z * this->z);
 }
 
+double vektor::getAngleBetween(vektor val)
+{
+    return acos((*this * val) / (getlength() * val.getlength())) * 180.0 / M_PI;
+}
+
 void vektor::setx(double x)
 {
     this->x = x;

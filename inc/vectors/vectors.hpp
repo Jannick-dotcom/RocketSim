@@ -35,6 +35,7 @@ public:
     double gety();
     double getz();
     double getlength();
+    double getAngleBetween(vektor val);
 
 
     void setx(double x);
